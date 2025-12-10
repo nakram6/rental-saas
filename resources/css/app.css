@@ -2,6 +2,15 @@
 @tailwind components;
 @tailwind utilities;
 
+
+
+/* Prevent all horizontal scrolling */
+html, body {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: hidden;
+}
+
 /* Simple fade-up animation helpers for home page */
 @keyframes fade-up {
     0% {

@@ -12,8 +12,7 @@ const DEFAULT_LIBRARY = [
         name: "White Sofa 3-seater",
         type: "sofa",
         tag: "Stage",
-        // example image path (put file in public/images/planner/)
-        image: "/images/planner/sofa-white.png",
+        image: "/images/planner/sofa-white.png", // put file in public/images/planner
     },
     {
         id: "table-1",
@@ -354,7 +353,7 @@ export default function Planner({ auth }) {
                 name: itemName.trim(),
                 type: itemType,
                 tag: itemTag.trim(),
-                image: itemImageUrl.trim() || null,
+                image: itemImageUrl.trim() || null, // if empty → coloured rectangle
             },
         ]);
         setItemName("");
@@ -438,7 +437,6 @@ export default function Planner({ auth }) {
     const handleStageDragMouseDown = (e) => {
         if (!stage) return;
 
-        // if clicked on a handle, let that handle take over
         const handleType = e.target?.dataset?.handle;
         if (handleType === "stage-rotate" || handleType === "stage-resize") return;
 
@@ -639,12 +637,251 @@ export default function Planner({ auth }) {
 
     const pageTitle = "Decoration Planner";
 
+    // small helpers to reuse library/properties panel in two places
+    const LibraryPanel = (
+        <div className="bg-slate-950 border border-slate-800 rounded-2xl p-4 shadow-xl shadow-black/60">
+            <div className="flex items-center justify-between mb-1">
+                <div>
+                    <h2 className="text-sm font-semibold text-slate-50">
+                        Item library
+                    </h2>
+                    <p className="text-[11px] text-slate-400">
+                        Saved only in this browser (local library).
+                    </p>
+                </div>
+                <button
+                    type="button"
+                    onClick={handleResetLibrary}
+                    className="text-[11px] px-2 py-1 rounded-full border border-slate-600 text-slate-100 hover:bg-slate-800"
+                >
+                    Reset
+                </button>
+            </div>
+
+            {/* add item */}
+            <form
+                onSubmit={handleAddLibraryItem}
+                className="grid grid-cols-2 gap-2 text-[11px] mt-3"
+            >
+                <div className="col-span-2">
+                    <label className="block mb-1 text-slate-200">
+                        Item name
+                    </label>
+                    <input
+                        type="text"
+                        value={itemName}
+                        onChange={(e) => setItemName(e.target.value)}
+                        className="w-full rounded-md border border-slate-700 bg-slate-900/70 px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-amber-400"
+                        placeholder="e.g. Gold Sofa 3-seater"
+                    />
+                </div>
+                <div>
+                    <label className="block mb-1 text-slate-200">
+                        Type
+                    </label>
+                    <select
+                        value={itemType}
+                        onChange={(e) => setItemType(e.target.value)}
+                        className="w-full rounded-md border border-slate-700 bg-slate-900/70 px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-amber-400"
+                    >
+                        <option value="chair">Chair</option>
+                        <option value="table">Table</option>
+                        <option value="sofa">Sofa</option>
+                        <option value="flower">Flower</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+                <div>
+                    <label className="block mb-1 text-slate-200">
+                        Tag / Notes
+                    </label>
+                    <input
+                        type="text"
+                        value={itemTag}
+                        onChange={(e) => setItemTag(e.target.value)}
+                        className="w-full rounded-md border border-slate-700 bg-slate-900/70 px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-amber-400"
+                        placeholder="e.g. Gold, Stage, VIP"
+                    />
+                </div>
+                <div className="col-span-2">
+                    <label className="block mb-1 text-slate-200">
+                        Image URL (optional)
+                    </label>
+                    <input
+                        type="text"
+                        value={itemImageUrl}
+                        onChange={(e) => setItemImageUrl(e.target.value)}
+                        className="w-full rounded-md border border-slate-700 bg-slate-900/70 px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-amber-400"
+                        placeholder="/images/planner/my-chair.png"
+                    />
+                </div>
+                <div className="col-span-2 flex justify-end">
+                    <button
+                        type="submit"
+                        className="px-3 py-1.5 rounded-full bg-amber-400 text-slate-900 font-semibold hover:bg-amber-300"
+                    >
+                        Save to library
+                    </button>
+                </div>
+            </form>
+
+            {/* saved items */}
+            <div className="mt-4 max-h-60 overflow-y-auto space-y-2 pr-1">
+                {library.map((li) => (
+                    <div
+                        key={li.id}
+                        className="rounded-xl border border-slate-700 bg-slate-900/80 px-2.5 py-2 text-[11px]"
+                    >
+                        <div className="flex items-center justify-between mb-1 gap-2">
+                            <div className="flex items-center gap-2 min-w-0">
+                                {li.image && (
+                                    <img
+                                        src={li.image}
+                                        alt={li.name}
+                                        className="w-6 h-6 rounded object-contain bg-slate-800"
+                                    />
+                                )}
+                                <span className="font-semibold text-slate-50 truncate">
+                                    {li.name}
+                                </span>
+                            </div>
+                            <span
+                                className={
+                                    "px-2 py-0.5 rounded-full border text-[10px] " +
+                                    typeBadgeColor(li.type)
+                                }
+                            >
+                                {li.type}
+                            </span>
+                        </div>
+                        <p className="text-[10px] text-slate-400 mb-1">
+                            {li.tag ? `Tag: ${li.tag}` : "\u00A0"}
+                        </p>
+                        <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-1 text-[10px]">
+                                <span>Qty</span>
+                                <input
+                                    type="number"
+                                    min="1"
+                                    value={quantities[li.id] || "1"}
+                                    onChange={(e) =>
+                                        handleQtyChange(li.id, e.target.value)
+                                    }
+                                    className="w-12 rounded border border-slate-700 bg-slate-900 px-1 py-0.5 focus:outline-none focus:ring-1 focus:ring-amber-400"
+                                />
+                            </div>
+                            <div className="flex gap-1">
+                                <button
+                                    type="button"
+                                    onClick={() => handleAddOne(li)}
+                                    className="px-2 py-1 rounded-full border border-slate-600 text-slate-100 hover:bg-slate-800 text-[10px]"
+                                >
+                                    +1
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => handleAddMany(li)}
+                                    className="px-2 py-1 rounded-full bg-amber-400 text-slate-900 font-semibold hover:bg-amber-300 text-[10px]"
+                                >
+                                    Add
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                ))}
+            </div>
+        </div>
+    );
+
+    const PropertiesPanel = (
+        <div className="bg-slate-950 border border-slate-800 rounded-2xl p-3 text-[11px] shadow-xl shadow-black/60">
+            <p className="font-semibold text-slate-50 mb-1">Properties</p>
+
+            {!selectedType && (
+                <p className="text-slate-400">
+                    Click the stage or any item on the canvas. Drag to move.  
+                    Use the round handles to resize and rotate. Right-click to change colours.
+                </p>
+            )}
+
+            {selectedType === "stage" && stage && (
+                <div className="space-y-2 mt-1">
+                    <p className="font-semibold text-slate-100">
+                        Stage area
+                    </p>
+                    <div className="grid grid-cols-2 gap-2">
+                        <div>
+                            <label className="block mb-1 text-slate-400 text-[10px]">
+                                Width
+                            </label>
+                            <input
+                                type="number"
+                                value={Math.round(stage.width)}
+                                onChange={(e) =>
+                                    setStage((prev) => ({
+                                        ...prev,
+                                        width: parseInt(e.target.value || "0", 10),
+                                    }))
+                                }
+                                className="w-full rounded border border-slate-700 bg-slate-900 px-1 py-1"
+                            />
+                        </div>
+                        <div>
+                            <label className="block mb-1 text-slate-400 text-[10px]">
+                                Height
+                            </label>
+                            <input
+                                type="number"
+                                value={Math.round(stage.height)}
+                                onChange={(e) =>
+                                    setStage((prev) => ({
+                                        ...prev,
+                                        height: parseInt(e.target.value || "0", 10),
+                                    }))
+                                }
+                                className="w-full rounded border border-slate-700 bg-slate-900 px-1 py-1"
+                            />
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {selectedType === "item" && selectedItem && (
+                <div className="space-y-2 mt-1">
+                    <p className="font-semibold text-slate-100">
+                        {selectedItem.name}
+                    </p>
+                    <div>
+                        <label className="block mb-1 text-slate-400 text-[10px]">
+                            Rotation
+                        </label>
+                        <input
+                            type="range"
+                            min="-90"
+                            max="90"
+                            step="5"
+                            value={selectedItem.rotation}
+                            onChange={(e) =>
+                                handleItemRotate(
+                                    selectedItem.id,
+                                    parseInt(e.target.value || "0", 10)
+                                )
+                            }
+                            className="w-full"
+                        />
+                    </div>
+                </div>
+            )}
+        </div>
+    );
+
     return (
         <AuthenticatedLayout user={auth.user}>
             <Head title={pageTitle} />
 
             <div className="py-4 bg-slate-900 min-h-screen">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                {/* ----- CHANGED: full-width container, no max-w ----- */}
+               <div className="w-full px-2 sm:px-4 lg:px-6 mx-auto overflow-hidden">
                     {/* small toolbar only (your existing admin header is outside) */}
                     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
                         <div>
@@ -685,350 +922,117 @@ export default function Planner({ auth }) {
                         </div>
                     </div>
 
-                    {/* MAIN GRID: make canvas column large, full-screen height */}
-                    <div className="grid gap-4 lg:grid-cols-[minmax(0,3.2fr)_minmax(0,1.2fr)]">
-                        {/* CANVAS */}
-                        <div className="flex">
-                            <div className="flex-1 bg-slate-950/90 border border-slate-800 rounded-2xl p-3 shadow-xl shadow-black/50">
-                                <div
-                                    ref={canvasRef}
-                                    className="relative w-full h-[calc(100vh-170px)] rounded-2xl overflow-hidden cursor-default"
-                                    style={{
-                                        backgroundImage:
-                                            "linear-gradient(to right, rgba(148,163,184,0.18) 1px, transparent 1px), linear-gradient(to bottom, rgba(148,163,184,0.18) 1px, transparent 1px)",
-                                        backgroundSize: "40px 40px",
-                                        backgroundColor: "#020617",
-                                    }}
-                                    onClick={handleCanvasClick}
-                                    onMouseDown={handleCanvasMouseDown}
-                                >
-                                    {/* STAGE */}
-                                    {stage && stage.width > 4 && stage.height > 4 && (
-                                        <div
-                                            className={`absolute rounded-xl border-2 ${
-                                                selectedType === "stage"
-                                                    ? "border-amber-400 ring-2 ring-amber-300/40"
-                                                    : "border-slate-800"
-                                            }`}
-                                            style={{
-                                                left: stage.x,
-                                                top: stage.y,
-                                                width: stage.width,
-                                                height: stage.height,
-                                                backgroundColor: stage.color,
-                                                opacity: 0.94,
-                                                transform: `rotate(${stage.rotation || 0}deg)`,
-                                                transformOrigin: "center center",
-                                            }}
-                                            onMouseDown={handleStageDragMouseDown}
-                                            onClick={handleSelectStage}
-                                            onContextMenu={openStageMenu}
-                                        >
-                                            <div className="absolute top-2 left-3 text-[10px] uppercase tracking-[0.2em] text-amber-200 pointer-events-none">
-                                                Stage
-                                            </div>
+                    {/* ----- CHANGED: full-width canvas + floating top-right panel ----- */}
+                    <div className="relative w-full overflow-hidden">
+    <div className="w-full bg-slate-950/90 border border-slate-800 rounded-2xl p-3 shadow-xl shadow-black/50 overflow-hidden">
+        
+        <div
+    ref={canvasRef}
+    className="relative w-full max-w-full h-[calc(100vh-120px)] rounded-2xl overflow-hidden cursor-default"
+    style={{
+        backgroundImage:
+            "linear-gradient(to right, rgba(148,163,184,0.18) 1px, transparent 1px), linear-gradient(to bottom, rgba(148,163,184,0.18) 1px, transparent 1px)",
+        backgroundSize: "40px 40px",
+        backgroundColor: "#020617",
+    }}
+    onClick={handleCanvasClick}
+    onMouseDown={handleCanvasMouseDown}
+>
 
-                                            {/* Stage rotate handle */}
-                                            {selectedType === "stage" && (
-                                                <div
-                                                    onMouseDown={handleStageRotateMouseDown}
-                                                    className="absolute -top-4 left-1/2 -translate-x-1/2 w-4 h-4 rounded-full bg-amber-400 border border-white shadow cursor-crosshair"
-                                                    data-handle="stage-rotate"
-                                                />
-                                            )}
 
-                                            {/* Stage resize handle */}
-                                            {selectedType === "stage" && (
-                                                <div
-                                                    onMouseDown={handleStageResizeMouseDown}
-                                                    className="absolute w-4 h-4 rounded-full bg-orange-400 border border-white shadow -right-2 -bottom-2 cursor-se-resize"
-                                                    data-handle="stage-resize"
-                                                />
-                                            )}
+                                {/* STAGE */}
+                                {stage && stage.width > 4 && stage.height > 4 && (
+                                    <div
+                                        className={`absolute rounded-xl border-2 ${
+                                            selectedType === "stage"
+                                                ? "border-amber-400 ring-2 ring-amber-300/40"
+                                                : "border-slate-800"
+                                        }`}
+                                        style={{
+                                            left: stage.x,
+                                            top: stage.y,
+                                            width: stage.width,
+                                            height: stage.height,
+                                            backgroundColor: stage.color,
+                                            opacity: 0.94,
+                                            transform: `rotate(${stage.rotation || 0}deg)`,
+                                            transformOrigin: "center center",
+                                        }}
+                                        onMouseDown={handleStageDragMouseDown}
+                                        onClick={handleSelectStage}
+                                        onContextMenu={openStageMenu}
+                                    >
+                                        <div className="absolute top-2 left-3 text-[10px] uppercase tracking-[0.2em] text-amber-200 pointer-events-none">
+                                            Stage
                                         </div>
-                                    )}
 
-                                    {/* ITEMS */}
-                                    {items.map((item) => (
-                                        <DecorItem
-                                            key={item.id}
-                                            item={item}
-                                            onMove={handleItemMove}
-                                            onResize={handleItemResize}
-                                            onRotate={handleItemRotate}
-                                            onSelect={handleSelectItem}
-                                            isSelected={
-                                                selectedType === "item" &&
-                                                selectedItemId === item.id
-                                            }
-                                            onContextMenu={openItemMenu}
-                                            canvasRectGetter={getCanvasRect}
-                                        />
-                                    ))}
+                                        {/* Stage rotate handle */}
+                                        {selectedType === "stage" && (
+                                            <div
+                                                onMouseDown={handleStageRotateMouseDown}
+                                                className="absolute -top-4 left-1/2 -translate-x-1/2 w-4 h-4 rounded-full bg-amber-400 border border-white shadow cursor-crosshair"
+                                                data-handle="stage-rotate"
+                                            />
+                                        )}
 
-                                    {/* HINT */}
-                                    {!stage && (
-                                        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                                            <p className="text-[11px] text-slate-400 text-center px-6">
-                                                Click{" "}
-                                                <span className="font-semibold">
-                                                    “Draw stage”
-                                                </span>
-                                                , then click and drag anywhere on this grid to draw
-                                                your stage / main layout. Afterwards, place items
-                                                from the right-side library and use the round
-                                                handles to move, resize and rotate.
-                                            </p>
-                                        </div>
-                                    )}
-                                </div>
+                                        {/* Stage resize handle */}
+                                        {selectedType === "stage" && (
+                                            <div
+                                                onMouseDown={handleStageResizeMouseDown}
+                                                className="absolute w-4 h-4 rounded-full bg-orange-400 border border-white shadow -right-2 -bottom-2 cursor-se-resize"
+                                                data-handle="stage-resize"
+                                            />
+                                        )}
+                                    </div>
+                                )}
+
+                                {/* ITEMS */}
+                                {items.map((item) => (
+                                    <DecorItem
+                                        key={item.id}
+                                        item={item}
+                                        onMove={handleItemMove}
+                                        onResize={handleItemResize}
+                                        onRotate={handleItemRotate}
+                                        onSelect={handleSelectItem}
+                                        isSelected={
+                                            selectedType === "item" &&
+                                            selectedItemId === item.id
+                                        }
+                                        onContextMenu={openItemMenu}
+                                        canvasRectGetter={getCanvasRect}
+                                    />
+                                ))}
+
+                                {/* HINT */}
+                                {!stage && (
+                                    <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                                        <p className="text-[11px] text-slate-400 text-center px-6">
+                                            Click{" "}
+                                            <span className="font-semibold">
+                                                “Draw stage”
+                                            </span>
+                                            , then click and drag anywhere on this grid to draw
+                                            your stage / main layout. Afterwards, place items
+                                            from the library and use the round handles to move,
+                                            resize and rotate.
+                                        </p>
+                                    </div>
+                                )}
                             </div>
                         </div>
 
-                        {/* RIGHT PANEL */}
-                        <aside className="space-y-4">
-                            {/* LIBRARY */}
-                            <div className="bg-slate-950 border border-slate-800 rounded-2xl p-4 shadow-xl shadow-black/60">
-                                <div className="flex items-center justify-between mb-1">
-                                    <div>
-                                        <h2 className="text-sm font-semibold text-slate-50">
-                                            Item library
-                                        </h2>
-                                        <p className="text-[11px] text-slate-400">
-                                            Saved only in this browser (local library).
-                                        </p>
-                                    </div>
-                                    <button
-                                        type="button"
-                                        onClick={handleResetLibrary}
-                                        className="text-[11px] px-2 py-1 rounded-full border border-slate-600 text-slate-100 hover:bg-slate-800"
-                                    >
-                                        Reset
-                                    </button>
-                                </div>
+                        {/* Floating library + properties (desktop) */}
+                        <div className="hidden lg:flex flex-col gap-3 absolute top-4 right-4 w-80 max-h-[calc(100vh-140px)] overflow-y-auto">
+                            {LibraryPanel}
+                            {PropertiesPanel}
+                        </div>
 
-                                {/* add item */}
-                                <form
-                                    onSubmit={handleAddLibraryItem}
-                                    className="grid grid-cols-2 gap-2 text-[11px] mt-3"
-                                >
-                                    <div className="col-span-2">
-                                        <label className="block mb-1 text-slate-200">
-                                            Item name
-                                        </label>
-                                        <input
-                                            type="text"
-                                            value={itemName}
-                                            onChange={(e) => setItemName(e.target.value)}
-                                            className="w-full rounded-md border border-slate-700 bg-slate-900/70 px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-amber-400"
-                                            placeholder="e.g. Gold Sofa 3-seater"
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="block mb-1 text-slate-200">
-                                            Type
-                                        </label>
-                                        <select
-                                            value={itemType}
-                                            onChange={(e) => setItemType(e.target.value)}
-                                            className="w-full rounded-md border border-slate-700 bg-slate-900/70 px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-amber-400"
-                                        >
-                                            <option value="chair">Chair</option>
-                                            <option value="table">Table</option>
-                                            <option value="sofa">Sofa</option>
-                                            <option value="flower">Flower</option>
-                                            <option value="other">Other</option>
-                                        </select>
-                                    </div>
-                                    <div>
-                                        <label className="block mb-1 text-slate-200">
-                                            Tag / Notes
-                                        </label>
-                                        <input
-                                            type="text"
-                                            value={itemTag}
-                                            onChange={(e) => setItemTag(e.target.value)}
-                                            className="w-full rounded-md border border-slate-700 bg-slate-900/70 px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-amber-400"
-                                            placeholder="e.g. Gold, Stage, VIP"
-                                        />
-                                    </div>
-                                    <div className="col-span-2">
-                                        <label className="block mb-1 text-slate-200">
-                                            Image URL (optional)
-                                        </label>
-                                        <input
-                                            type="text"
-                                            value={itemImageUrl}
-                                            onChange={(e) => setItemImageUrl(e.target.value)}
-                                            className="w-full rounded-md border border-slate-700 bg-slate-900/70 px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-amber-400"
-                                            placeholder="/images/planner/my-chair.png"
-                                        />
-                                    </div>
-                                    <div className="col-span-2 flex justify-end">
-                                        <button
-                                            type="submit"
-                                            className="px-3 py-1.5 rounded-full bg-amber-400 text-slate-900 font-semibold hover:bg-amber-300"
-                                        >
-                                            Save to library
-                                        </button>
-                                    </div>
-                                </form>
-
-                                {/* saved items */}
-                                <div className="mt-4 max-h-60 overflow-y-auto space-y-2 pr-1">
-                                    {library.map((li) => (
-                                        <div
-                                            key={li.id}
-                                            className="rounded-xl border border-slate-700 bg-slate-900/80 px-2.5 py-2 text-[11px]"
-                                        >
-                                            <div className="flex items-center justify-between mb-1 gap-2">
-                                                <div className="flex items-center gap-2 min-w-0">
-                                                    {li.image && (
-                                                        <img
-                                                            src={li.image}
-                                                            alt={li.name}
-                                                            className="w-6 h-6 rounded object-contain bg-slate-800"
-                                                        />
-                                                    )}
-                                                    <span className="font-semibold text-slate-50 truncate">
-                                                        {li.name}
-                                                    </span>
-                                                </div>
-                                                <span
-                                                    className={
-                                                        "px-2 py-0.5 rounded-full border text-[10px] " +
-                                                        typeBadgeColor(li.type)
-                                                    }
-                                                >
-                                                    {li.type}
-                                                </span>
-                                            </div>
-                                            <p className="text-[10px] text-slate-400 mb-1">
-                                                {li.tag ? `Tag: ${li.tag}` : "\u00A0"}
-                                            </p>
-                                            <div className="flex items-center justify-between">
-                                                <div className="flex items-center gap-1 text-[10px]">
-                                                    <span>Qty</span>
-                                                    <input
-                                                        type="number"
-                                                        min="1"
-                                                        value={quantities[li.id] || "1"}
-                                                        onChange={(e) =>
-                                                            handleQtyChange(li.id, e.target.value)
-                                                        }
-                                                        className="w-12 rounded border border-slate-700 bg-slate-900 px-1 py-0.5 focus:outline-none focus:ring-1 focus:ring-amber-400"
-                                                    />
-                                                </div>
-                                                <div className="flex gap-1">
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => handleAddOne(li)}
-                                                        className="px-2 py-1 rounded-full border border-slate-600 text-slate-100 hover:bg-slate-800 text-[10px]"
-                                                    >
-                                                        +1
-                                                    </button>
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => handleAddMany(li)}
-                                                        className="px-2 py-1 rounded-full bg-amber-400 text-slate-900 font-semibold hover:bg-amber-300 text-[10px]"
-                                                    >
-                                                        Add
-                                                    </button>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-
-                            {/* PROPERTIES */}
-                            <div className="bg-slate-950 border border-slate-800 rounded-2xl p-3 text-[11px]">
-                                <p className="font-semibold text-slate-50 mb-1">Properties</p>
-
-                                {!selectedType && (
-                                    <p className="text-slate-400">
-                                        Click the stage or any item on the canvas.  
-                                        Drag to move. Use the round handles to resize and rotate.
-                                        Right-click (mouse right) to change colours.
-                                    </p>
-                                )}
-
-                                {selectedType === "stage" && stage && (
-                                    <div className="space-y-2 mt-1">
-                                        <p className="font-semibold text-slate-100">
-                                            Stage area
-                                        </p>
-                                        <div className="grid grid-cols-2 gap-2">
-                                            <div>
-                                                <label className="block mb-1 text-slate-400 text-[10px]">
-                                                    Width
-                                                </label>
-                                                <input
-                                                    type="number"
-                                                    value={Math.round(stage.width)}
-                                                    onChange={(e) =>
-                                                        setStage((prev) => ({
-                                                            ...prev,
-                                                            width: parseInt(
-                                                                e.target.value || "0",
-                                                                10
-                                                            ),
-                                                        }))
-                                                    }
-                                                    className="w-full rounded border border-slate-700 bg-slate-900 px-1 py-1"
-                                                />
-                                            </div>
-                                            <div>
-                                                <label className="block mb-1 text-slate-400 text-[10px]">
-                                                    Height
-                                                </label>
-                                                <input
-                                                    type="number"
-                                                    value={Math.round(stage.height)}
-                                                    onChange={(e) =>
-                                                        setStage((prev) => ({
-                                                            ...prev,
-                                                            height: parseInt(
-                                                                e.target.value || "0",
-                                                                10
-                                                            ),
-                                                        }))
-                                                    }
-                                                    className="w-full rounded border border-slate-700 bg-slate-900 px-1 py-1"
-                                                />
-                                            </div>
-                                        </div>
-                                    </div>
-                                )}
-
-                                {selectedType === "item" && selectedItem && (
-                                    <div className="space-y-2 mt-1">
-                                        <p className="font-semibold text-slate-100">
-                                            {selectedItem.name}
-                                        </p>
-                                        <div>
-                                            <label className="block mb-1 text-slate-400 text-[10px]">
-                                                Rotation
-                                            </label>
-                                            <input
-                                                type="range"
-                                                min="-90"
-                                                max="90"
-                                                step="5"
-                                                value={selectedItem.rotation}
-                                                onChange={(e) =>
-                                                    handleItemRotate(
-                                                        selectedItem.id,
-                                                        parseInt(e.target.value || "0", 10)
-                                                    )
-                                                }
-                                                className="w-full"
-                                            />
-                                        </div>
-                                    </div>
-                                )}
-                            </div>
-                        </aside>
+                        {/* Panels below canvas on small screens */}
+                        <div className="mt-4 lg:hidden space-y-4">
+                            {LibraryPanel}
+                            {PropertiesPanel}
+                        </div>
                     </div>
                 </div>
 
