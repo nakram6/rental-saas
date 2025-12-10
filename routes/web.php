@@ -1,40 +1,81 @@
 <?php
 
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\PublicCatalogController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
-Route::get('/', function () {
-    return Inertia::render('Welcome', [
-        'canLogin' => Route::has('login'),
-        'canRegister' => Route::has('register'),
-        'laravelVersion' => Application::VERSION,
-        'phpVersion' => PHP_VERSION,
-    ]);
-});
+/*
+|--------------------------------------------------------------------------
+| Public Routes (Client Side)
+|--------------------------------------------------------------------------
+*/
+
+// 🌟 Public catalog (client view)
+Route::get('/', [PublicCatalogController::class, 'home'])->name('home');
+
+Route::get('/catalog', [PublicCatalogController::class, 'index'])->name('catalog');
+
+
+/*
+|--------------------------------------------------------------------------
+| Dashboard (Admin)
+|--------------------------------------------------------------------------
+*/
 
 Route::get('/dashboard', function () {
     return Inertia::render('Dashboard');
 })->middleware(['auth', 'verified'])->name('dashboard');
 
-Route::middleware('auth')->group(function () {
-    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
-    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
-    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+
+/*
+|--------------------------------------------------------------------------
+| Authenticated Admin Routes
+|--------------------------------------------------------------------------
+*/
+
+Route::middleware(['auth'])->group(function () {
+
+    // User Profile
+    Route::get('/profile', [ProfileController::class, 'edit'])
+        ->name('profile.edit');
+
+    Route::patch('/profile', [ProfileController::class, 'update'])
+        ->name('profile.update');
+
+    Route::delete('/profile', [ProfileController::class, 'destroy'])
+        ->name('profile.destroy');
+
+    /*
+    |--------------------------------------------------------------------------
+    | Items Page (Admin Side)
+    |--------------------------------------------------------------------------
+    */
+    Route::get('/items', function () {
+        return Inertia::render('Items/Index');
+    })->name('items.index');
 });
 
+
+/*
+|--------------------------------------------------------------------------
+| Debug: Tenant Test Route
+|--------------------------------------------------------------------------
+*/
 
 Route::get('/test-tenant', function () {
     if (app()->bound('currentTenant')) {
         return app('currentTenant');
     }
-
     return ['message' => 'No currentTenant bound'];
 });
 
 
-
-
+/*
+|--------------------------------------------------------------------------
+| Auth Routes (Breeze)
+|--------------------------------------------------------------------------
+*/
 
 require __DIR__.'/auth.php';
