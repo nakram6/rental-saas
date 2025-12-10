@@ -24,4 +24,17 @@ Route::middleware('auth')->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 
+
+Route::get('/test-tenant', function () {
+    if (app()->bound('currentTenant')) {
+        return app('currentTenant');
+    }
+
+    return ['message' => 'No currentTenant bound'];
+});
+
+
+
+
+
 require __DIR__.'/auth.php';

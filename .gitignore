@@ -1,24 +1,48 @@
+# -------------------------------------------------------
+# OS / Editor / System Files
+# -------------------------------------------------------
 *.log
 .DS_Store
+Thumbs.db
+
+# IDE / Editor settings
+/.idea
+/.fleet
+/.vscode
+/.zed
+
+# -------------------------------------------------------
+# Environment Files (NEVER commit these)
+# -------------------------------------------------------
 .env
 .env.backup
 .env.production
-.phpactor.json
-.phpunit.result.cache
-/.fleet
-/.idea
-/.nova
+auth.json
+
+# -------------------------------------------------------
+# Composer / PHP
+# -------------------------------------------------------
+/vendor
+/.phpactor.json
 /.phpunit.cache
-/.vscode
-/.zed
-/auth.json
+/.phpunit.result.cache
+/storage/*.key
+
+# -------------------------------------------------------
+# Laravel Framework Files
+# -------------------------------------------------------
+/storage/pail
+/public/storage
+
+# -------------------------------------------------------
+# Node / Vite / React
+# -------------------------------------------------------
 /node_modules
 /public/build
 /public/hot
-/public/storage
-/storage/*.key
-/storage/pail
-/vendor
+
+# -------------------------------------------------------
+# Homestead (if applicable)
+# -------------------------------------------------------
 Homestead.json
 Homestead.yaml
-Thumbs.db
