@@ -41,4 +41,23 @@ class PublicCatalogController extends Controller
             'items'  => $items,
         ]);
     }
+
+
+  // NEW: quote page (front-end only for now)
+    public function quote()
+    {
+        $tenant = app('currentTenant');
+
+        return Inertia::render('Public/Quote', [
+            'tenant' => $tenant,
+        ]);
+    }
+
+
+
+
+
+
+
+
 }

@@ -16,7 +16,7 @@ use Inertia\Inertia;
 Route::get('/', [PublicCatalogController::class, 'home'])->name('home');
 
 Route::get('/catalog', [PublicCatalogController::class, 'index'])->name('catalog');
-
+Route::get('/quote', [PublicCatalogController::class, 'quote'])->name('quote.show');
 
 /*
 |--------------------------------------------------------------------------
