@@ -55,6 +55,13 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/items', function () {
         return Inertia::render('Items/Index');
     })->name('items.index');
+
+Route::get('/planner', function () {
+        return Inertia::render('Admin/Planner');
+    })->name('planner');
+
+
+
 });
 
 

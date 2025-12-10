@@ -39,3 +39,20 @@ Created ItemController (full CRUD)
 Registered API routes (routes/api.php)
 
 Tested API via Postman — all endpoints working 🎉
+
+
+
+
+
+
+On the computer that has the original rental_saas:
+
+mysqldump -u root -p rental_saas > rental_saas.sql
+
+mysql -u root -p -e "CREATE DATABASE rental_saas_copy;"
+
+mysql -u root -p rental_saas_copy < /Users/falak/Desktop/rental_saas.sql
+
+
+
+npm install html2canvas jspdf
