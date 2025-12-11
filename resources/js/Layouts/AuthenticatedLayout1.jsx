@@ -23,12 +23,13 @@ function SideNavLink({ href, active, children }) {
 
 export default function AuthenticatedLayout({ header, children }) {
     const user = usePage().props.auth.user;
+
     const [showingNavigationDropdown, setShowingNavigationDropdown] =
         useState(false);
 
     return (
-        <div className="min-h-screen bg-gray-100 flex flex-col">
-            {/* ========== TOP NAV (original Breeze style) ========== */}
+        <div className="min-h-screen bg-gray-100">
+            {/* TOP NAVBAR (same as before, plus Planner + Bookings links) */}
             <nav className="border-b border-gray-100 bg-white">
                 <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
                     <div className="flex h-16 justify-between">
@@ -47,6 +48,7 @@ export default function AuthenticatedLayout({ header, children }) {
                                     Dashboard
                                 </NavLink>
 
+                                {/* Old Items link */}
                                 <NavLink
                                     href={route('items.index')}
                                     active={route().current('items.index')}
@@ -54,17 +56,17 @@ export default function AuthenticatedLayout({ header, children }) {
                                     Items
                                 </NavLink>
 
-                                {/* NEW: Planner */}
+                                {/* NEW: Planner link */}
                                 <NavLink
-                                    href={route('planner')} // change route name if needed
+                                    href={route('planner')} // <-- change route name if needed
                                     active={route().current('planner')}
                                 >
                                     Planner
                                 </NavLink>
 
-                                {/* NEW: Bookings */}
+                                {/* NEW: Bookings link */}
                                 <NavLink
-                                    href={route('bookings.index')} // change if needed
+                                    href={route('bookings.index')} // <-- change route name if needed
                                     active={route().current('bookings.index')}
                                 >
                                     Bookings
@@ -118,7 +120,7 @@ export default function AuthenticatedLayout({ header, children }) {
                         <div className="-me-2 flex items-center sm:hidden">
                             <button
                                 onClick={() =>
-                                    setShowingNavigationDropdown((previous) => !previous)
+                                    setShowingNavigationDropdown((previousState) => !previousState)
                                 }
                                 className="inline-flex items-center justify-center rounded-md p-2 text-gray-400 transition duration-150 ease-in-out hover:bg-gray-100 hover:text-gray-500 focus:bg-gray-100 focus:text-gray-500 focus:outline-none"
                             >
@@ -152,7 +154,7 @@ export default function AuthenticatedLayout({ header, children }) {
                     </div>
                 </div>
 
-                {/* MOBILE NAV LINKS (with Planner + Bookings) */}
+                {/* MOBILE NAV LINKS (add Planner + Bookings here too) */}
                 <div
                     className={
                         (showingNavigationDropdown ? 'block' : 'hidden') + ' sm:hidden'
@@ -174,14 +176,14 @@ export default function AuthenticatedLayout({ header, children }) {
                         </ResponsiveNavLink>
 
                         <ResponsiveNavLink
-                            href={route('planner')}
+                            href={route('planner')} // <-- change if needed
                             active={route().current('planner')}
                         >
                             Planner
                         </ResponsiveNavLink>
 
                         <ResponsiveNavLink
-                            href={route('bookings.index')}
+                            href={route('bookings.index')} // <-- change if needed
                             active={route().current('bookings.index')}
                         >
                             Bookings
@@ -214,10 +216,10 @@ export default function AuthenticatedLayout({ header, children }) {
                 </div>
             </nav>
 
-            {/* ========== MAIN LAYOUT: sidebar at extreme left + header + content ========== */}
-            <div className="flex flex-1">
-                {/* Sidebar is now flush to the LEFT EDGE, full height */}
-                <aside className="hidden md:block w-64 bg-white border-r border-gray-200 min-h-[calc(100vh-4rem)] pt-6">
+            {/* === MAIN AREA: sidebar on extreme left + header + content === */}
+            <div className="flex">
+                {/* SIDEBAR: full height, extreme left */}
+                <aside className="hidden md:block w-64 bg-white border-r border-gray-200 min-h-screen pt-6">
                     <div className="px-4 text-xs font-semibold uppercase tracking-wide text-gray-400 mb-3">
                         Admin navigation
                     </div>
@@ -231,7 +233,7 @@ export default function AuthenticatedLayout({ header, children }) {
                         </SideNavLink>
 
                         <SideNavLink
-                            href={route('planner')}
+                            href={route('planner')} // <-- change if needed
                             active={route().current('planner')}
                         >
                             <span className="text-lg">🛋️</span>
@@ -239,7 +241,7 @@ export default function AuthenticatedLayout({ header, children }) {
                         </SideNavLink>
 
                         <SideNavLink
-                            href={route('bookings.index')}
+                            href={route('bookings.index')} // <-- change if needed
                             active={route().current('bookings.index')}
                         >
                             <span className="text-lg">📅</span>
@@ -248,8 +250,8 @@ export default function AuthenticatedLayout({ header, children }) {
                     </nav>
                 </aside>
 
-                {/* Right side: old header + main content, with margin from sidebar */}
-                <div className="flex-1 flex flex-col">
+                {/* RIGHT SIDE: header (same as before) + main content, with margin from sidebar */}
+                <div className="flex-1">
                     {header && (
                         <header className="bg-white shadow">
                             <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
@@ -258,8 +260,7 @@ export default function AuthenticatedLayout({ header, children }) {
                         </header>
                     )}
 
-                  <main className="flex-1 px-4 py-6 sm:px-6 lg:px-8">
-
+                    <main className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
                         {children}
                     </main>
                 </div>

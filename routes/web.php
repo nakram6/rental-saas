@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\PublicCatalogController;
+use App\Http\Controllers\BookingController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -60,7 +61,10 @@ Route::get('/planner', function () {
         return Inertia::render('Admin/Planner');
     })->name('planner');
 
-
+Route::get('/bookings', [BookingController::class, 'index'])->name('bookings.index');
+    Route::post('/bookings', [BookingController::class, 'store'])->name('bookings.store');
+    Route::put('/bookings/{booking}', [BookingController::class, 'update'])->name('bookings.update');
+    Route::delete('/bookings/{booking}', [BookingController::class, 'destroy'])->name('bookings.destroy');
 
 });
 
