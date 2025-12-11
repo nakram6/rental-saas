@@ -2,6 +2,7 @@ import React, { useMemo, useState } from "react";
 import { Head, useForm, router } from "@inertiajs/react";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
 import dayjs from "dayjs";
+import { useTheme } from "@/Context/ThemeContext";
 
 function buildMonthDays(baseDate) {
     const start = dayjs(baseDate).startOf("month").startOf("week"); // Sunday
@@ -17,6 +18,16 @@ function buildMonthDays(baseDate) {
 }
 
 export default function Index({ auth, bookings, selectedDate }) {
+const { theme } = useTheme();
+
+    const pageBg =
+        theme === "light"
+            ? "bg-gray-100"
+            : theme === "gold"
+            ? "bg-[#020617]"
+            : "bg-slate-900";
+
+
     const [currentMonth, setCurrentMonth] = useState(
         selectedDate || dayjs().format("YYYY-MM-DD")
     );
@@ -76,7 +87,7 @@ export default function Index({ auth, bookings, selectedDate }) {
         <AuthenticatedLayout user={auth.user}>
             <Head title="Event Bookings" />
 
-            <div className="py-4 bg-slate-900 min-h-screen">
+           <div className={`py-4 min-h-screen ${pageBg}`}>
                 <div className="max-w-6xl mx-auto px-3 sm:px-4 lg:px-6">
                     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
                         <div>

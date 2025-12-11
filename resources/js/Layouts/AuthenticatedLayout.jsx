@@ -4,16 +4,23 @@ import NavLink from '@/Components/NavLink';
 import ResponsiveNavLink from '@/Components/ResponsiveNavLink';
 import { Link, usePage } from '@inertiajs/react';
 import { useState } from 'react';
+import { useTheme } from '@/Context/ThemeContext'; // ✅ use theme
 
-function SideNavLink({ href, active, children }) {
+function SideNavLink({ href, active, children, theme }) {
+    const isDark = theme !== 'light';
+
     return (
         <Link
             href={href}
             className={
                 'flex items-center gap-2 px-4 py-2 text-sm rounded-lg mb-1 transition ' +
                 (active
-                    ? 'bg-gray-900 text-white font-semibold'
-                    : 'text-gray-700 hover:bg-gray-100')
+                    ? (isDark
+                        ? 'bg-slate-800 text-amber-300 font-semibold'
+                        : 'bg-gray-900 text-white font-semibold')
+                    : (isDark
+                        ? 'text-slate-200 hover:bg-slate-800/60'
+                        : 'text-gray-700 hover:bg-gray-100'))
             }
         >
             {children}
@@ -26,10 +33,37 @@ export default function AuthenticatedLayout({ header, children }) {
     const [showingNavigationDropdown, setShowingNavigationDropdown] =
         useState(false);
 
+    const { theme, setTheme } = useTheme(); // ✅ get current theme
+
+    // Simple theme config
+    const themeConfig = {
+        light: {
+            root: 'bg-gray-100 text-gray-900',
+            nav: 'bg-white border-gray-100',
+            sidebar: 'bg-white border-gray-200',
+            header: 'bg-white',
+        },
+        dark: {
+            root: 'bg-slate-950 text-slate-50',
+            nav: 'bg-slate-900 border-slate-800',
+            sidebar: 'bg-slate-950 border-slate-800',
+            header: 'bg-slate-900',
+        },
+        gold: {
+            // dark blue + gold
+            root: 'bg-[#020617] text-amber-50',
+            nav: 'bg-[#020617] border-slate-800',
+            sidebar: 'bg-[#020617] border-slate-800',
+            header: 'bg-[#020617]',
+        },
+    };
+
+    const t = themeConfig[theme] ?? themeConfig.dark;
+
     return (
-        <div className="min-h-screen bg-gray-100 flex flex-col">
-            {/* ========== TOP NAV (original Breeze style) ========== */}
-            <nav className="border-b border-gray-100 bg-white">
+        <div className={`min-h-screen flex flex-col ${t.root}`}>
+            {/* ========== TOP NAV (original Breeze style, themed) ========== */}
+            <nav className={`border-b ${t.nav}`}>
                 <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
                     <div className="flex h-16 justify-between">
                         <div className="flex">
@@ -54,7 +88,7 @@ export default function AuthenticatedLayout({ header, children }) {
                                     Items
                                 </NavLink>
 
-                                {/* NEW: Planner */}
+                                {/* Planner */}
                                 <NavLink
                                     href={route('planner')} // change route name if needed
                                     active={route().current('planner')}
@@ -62,7 +96,7 @@ export default function AuthenticatedLayout({ header, children }) {
                                     Planner
                                 </NavLink>
 
-                                {/* NEW: Bookings */}
+                                {/* Bookings */}
                                 <NavLink
                                     href={route('bookings.index')} // change if needed
                                     active={route().current('bookings.index')}
@@ -72,14 +106,55 @@ export default function AuthenticatedLayout({ header, children }) {
                             </div>
                         </div>
 
-                        <div className="hidden sm:ms-6 sm:flex sm:items-center">
+                        <div className="hidden sm:ms-6 sm:flex sm:items-center gap-3">
+                            {/* THEME SWITCHER */}
+                            <div className="flex items-center gap-1 text-xs">
+                                <button
+                                    type="button"
+                                    onClick={() => setTheme('light')}
+                                    className={
+                                        'px-2 py-1 rounded-full border ' +
+                                        (theme === 'light'
+                                            ? 'bg-white text-gray-900 border-gray-400'
+                                            : 'bg-transparent text-gray-400 border-gray-300')
+                                    }
+                                >
+                                    Light
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => setTheme('dark')}
+                                    className={
+                                        'px-2 py-1 rounded-full border ' +
+                                        (theme === 'dark'
+                                            ? 'bg-slate-800 text-slate-100 border-slate-500'
+                                            : 'bg-transparent text-gray-400 border-gray-300')
+                                    }
+                                >
+                                    Dark
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => setTheme('gold')}
+                                    className={
+                                        'px-2 py-1 rounded-full border ' +
+                                        (theme === 'gold'
+                                            ? 'bg-amber-400 text-slate-900 border-amber-500'
+                                            : 'bg-transparent text-gray-400 border-gray-300')
+                                    }
+                                >
+                                    Gold
+                                </button>
+                            </div>
+
+                            {/* USER DROPDOWN */}
                             <div className="relative ms-3">
                                 <Dropdown>
                                     <Dropdown.Trigger>
                                         <span className="inline-flex rounded-md">
                                             <button
                                                 type="button"
-                                                className="inline-flex items-center rounded-md border border-transparent bg-white px-3 py-2 text-sm font-medium leading-4 text-gray-500 transition duration-150 ease-in-out hover:text-gray-700 focus:outline-none"
+                                                className="inline-flex items-center rounded-md border border-transparent bg-white/90 px-3 py-2 text-sm font-medium leading-4 text-gray-500 transition duration-150 ease-in-out hover:text-gray-700 focus:outline-none"
                                             >
                                                 {user.name}
 
@@ -115,6 +190,7 @@ export default function AuthenticatedLayout({ header, children }) {
                             </div>
                         </div>
 
+                        {/* Mobile burger */}
                         <div className="-me-2 flex items-center sm:hidden">
                             <button
                                 onClick={() =>
@@ -216,8 +292,10 @@ export default function AuthenticatedLayout({ header, children }) {
 
             {/* ========== MAIN LAYOUT: sidebar at extreme left + header + content ========== */}
             <div className="flex flex-1">
-                {/* Sidebar is now flush to the LEFT EDGE, full height */}
-                <aside className="hidden md:block w-64 bg-white border-r border-gray-200 min-h-[calc(100vh-4rem)] pt-6">
+                {/* Sidebar */}
+                <aside
+                    className={`hidden md:block w-64 min-h-[calc(100vh-4rem)] pt-6 border-r ${t.sidebar}`}
+                >
                     <div className="px-4 text-xs font-semibold uppercase tracking-wide text-gray-400 mb-3">
                         Admin navigation
                     </div>
@@ -225,6 +303,7 @@ export default function AuthenticatedLayout({ header, children }) {
                         <SideNavLink
                             href={route('dashboard')}
                             active={route().current('dashboard')}
+                            theme={theme}
                         >
                             <span className="text-lg">🏠</span>
                             <span>Dashboard</span>
@@ -233,6 +312,7 @@ export default function AuthenticatedLayout({ header, children }) {
                         <SideNavLink
                             href={route('planner')}
                             active={route().current('planner')}
+                            theme={theme}
                         >
                             <span className="text-lg">🛋️</span>
                             <span>Decoration planner</span>
@@ -241,6 +321,7 @@ export default function AuthenticatedLayout({ header, children }) {
                         <SideNavLink
                             href={route('bookings.index')}
                             active={route().current('bookings.index')}
+                            theme={theme}
                         >
                             <span className="text-lg">📅</span>
                             <span>Event bookings</span>
@@ -248,18 +329,17 @@ export default function AuthenticatedLayout({ header, children }) {
                     </nav>
                 </aside>
 
-                {/* Right side: old header + main content, with margin from sidebar */}
+                {/* Right side: old header + main content, full width after sidebar */}
                 <div className="flex-1 flex flex-col">
                     {header && (
-                        <header className="bg-white shadow">
+                        <header className={`${t.header} shadow`}>
                             <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
                                 {header}
                             </div>
                         </header>
                     )}
 
-                  <main className="flex-1 px-4 py-6 sm:px-6 lg:px-8">
-
+                    <main className="flex-1 px-4 py-6 sm:px-6 lg:px-8">
                         {children}
                     </main>
                 </div>

@@ -3,6 +3,7 @@ import { Head } from "@inertiajs/react";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
+import { useTheme } from "@/Context/ThemeContext";
 
 const STORAGE_KEY = "decorLibrary_v1";
 
@@ -237,6 +238,18 @@ function DecorItem({
 }
 
 export default function Planner({ auth }) {
+
+const { theme } = useTheme();
+
+    const pageBg =
+        theme === "light"
+            ? "bg-gray-100"
+            : theme === "gold"
+            ? "bg-[#020617]"
+            : "bg-slate-900"; // default dark
+
+
+
     // library
     const [library, setLibrary] = useState([]);
     const [quantities, setQuantities] = useState({});
@@ -876,7 +889,7 @@ export default function Planner({ auth }) {
         <AuthenticatedLayout user={auth.user}>
             <Head title={pageTitle} />
 
-            <div className="py-4 bg-slate-900 min-h-screen">
+             <div className={`py-4 min-h-screen ${pageBg}`}>
                 {/* full-width container */}
                 <div className="w-full px-2 sm:px-4 lg:px-6 mx-auto overflow-hidden">
                     {/* toolbar */}
