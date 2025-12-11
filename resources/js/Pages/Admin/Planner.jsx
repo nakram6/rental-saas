@@ -252,7 +252,6 @@ export default function Planner({ auth }) {
     // stage
     const [stage, setStage] = useState(null); // {x,y,width,height,color,rotation}
     const [drawStageMode, setDrawStageMode] = useState(false);
-    const [stageStart, setStageStart] = useState(null);
 
     // selection
     const [selectedItemId, setSelectedItemId] = useState(null);
@@ -395,7 +394,6 @@ export default function Planner({ auth }) {
         ev.stopPropagation();
 
         const start = canvasPosFromEvent(ev);
-        setStageStart(start);
         setStage({
             x: start.x,
             y: start.y,
@@ -416,7 +414,6 @@ export default function Planner({ auth }) {
 
         const up = () => {
             setDrawStageMode(false);
-            setStageStart(null);
             window.removeEventListener("mousemove", move);
             window.removeEventListener("mouseup", up);
         };
@@ -637,7 +634,7 @@ export default function Planner({ auth }) {
 
     const pageTitle = "Decoration Planner";
 
-    // small helpers to reuse library/properties panel in two places
+    // reusable panels
     const LibraryPanel = (
         <div className="bg-slate-950 border border-slate-800 rounded-2xl p-4 shadow-xl shadow-black/60">
             <div className="flex items-center justify-between mb-1">
@@ -671,7 +668,7 @@ export default function Planner({ auth }) {
                         type="text"
                         value={itemName}
                         onChange={(e) => setItemName(e.target.value)}
-                        className="w-full rounded-md border border-slate-700 bg-slate-900/70 px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-amber-400"
+                        className="w-full rounded-md border border-slate-700 bg-slate-900/70 text-slate-100 placeholder-slate-500 px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-amber-400"
                         placeholder="e.g. Gold Sofa 3-seater"
                     />
                 </div>
@@ -682,7 +679,7 @@ export default function Planner({ auth }) {
                     <select
                         value={itemType}
                         onChange={(e) => setItemType(e.target.value)}
-                        className="w-full rounded-md border border-slate-700 bg-slate-900/70 px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-amber-400"
+                        className="w-full rounded-md border border-slate-700 bg-slate-900/70 text-slate-100 px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-amber-400"
                     >
                         <option value="chair">Chair</option>
                         <option value="table">Table</option>
@@ -699,7 +696,7 @@ export default function Planner({ auth }) {
                         type="text"
                         value={itemTag}
                         onChange={(e) => setItemTag(e.target.value)}
-                        className="w-full rounded-md border border-slate-700 bg-slate-900/70 px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-amber-400"
+                        className="w-full rounded-md border border-slate-700 bg-slate-900/70 text-slate-100 placeholder-slate-500 px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-amber-400"
                         placeholder="e.g. Gold, Stage, VIP"
                     />
                 </div>
@@ -711,7 +708,7 @@ export default function Planner({ auth }) {
                         type="text"
                         value={itemImageUrl}
                         onChange={(e) => setItemImageUrl(e.target.value)}
-                        className="w-full rounded-md border border-slate-700 bg-slate-900/70 px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-amber-400"
+                        className="w-full rounded-md border border-slate-700 bg-slate-900/70 text-slate-100 placeholder-slate-500 px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-amber-400"
                         placeholder="/images/planner/my-chair.png"
                     />
                 </div>
@@ -767,7 +764,7 @@ export default function Planner({ auth }) {
                                     onChange={(e) =>
                                         handleQtyChange(li.id, e.target.value)
                                     }
-                                    className="w-12 rounded border border-slate-700 bg-slate-900 px-1 py-0.5 focus:outline-none focus:ring-1 focus:ring-amber-400"
+                                    className="w-12 rounded border border-slate-700 bg-slate-900 text-slate-100 px-1 py-0.5 focus:outline-none focus:ring-1 focus:ring-amber-400"
                                 />
                             </div>
                             <div className="flex gap-1">
@@ -823,7 +820,7 @@ export default function Planner({ auth }) {
                                         width: parseInt(e.target.value || "0", 10),
                                     }))
                                 }
-                                className="w-full rounded border border-slate-700 bg-slate-900 px-1 py-1"
+                                className="w-full rounded border border-slate-700 bg-slate-900 text-slate-100 px-1 py-1"
                             />
                         </div>
                         <div>
@@ -839,7 +836,7 @@ export default function Planner({ auth }) {
                                         height: parseInt(e.target.value || "0", 10),
                                     }))
                                 }
-                                className="w-full rounded border border-slate-700 bg-slate-900 px-1 py-1"
+                                className="w-full rounded border border-slate-700 bg-slate-900 text-slate-100 px-1 py-1"
                             />
                         </div>
                     </div>
@@ -880,9 +877,9 @@ export default function Planner({ auth }) {
             <Head title={pageTitle} />
 
             <div className="py-4 bg-slate-900 min-h-screen">
-                {/* ----- CHANGED: full-width container, no max-w ----- */}
-               <div className="w-full px-2 sm:px-4 lg:px-6 mx-auto overflow-hidden">
-                    {/* small toolbar only (your existing admin header is outside) */}
+                {/* full-width container */}
+                <div className="w-full px-2 sm:px-4 lg:px-6 mx-auto overflow-hidden">
+                    {/* toolbar */}
                     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
                         <div>
                             <h1 className="text-sm sm:text-base font-semibold text-slate-50">
@@ -922,24 +919,21 @@ export default function Planner({ auth }) {
                         </div>
                     </div>
 
-                    {/* ----- CHANGED: full-width canvas + floating top-right panel ----- */}
+                    {/* canvas + side panels */}
                     <div className="relative w-full overflow-hidden">
-    <div className="w-full bg-slate-950/90 border border-slate-800 rounded-2xl p-3 shadow-xl shadow-black/50 overflow-hidden">
-        
-        <div
-    ref={canvasRef}
-    className="relative w-full max-w-full h-[calc(100vh-120px)] rounded-2xl overflow-hidden cursor-default"
-    style={{
-        backgroundImage:
-            "linear-gradient(to right, rgba(148,163,184,0.18) 1px, transparent 1px), linear-gradient(to bottom, rgba(148,163,184,0.18) 1px, transparent 1px)",
-        backgroundSize: "40px 40px",
-        backgroundColor: "#020617",
-    }}
-    onClick={handleCanvasClick}
-    onMouseDown={handleCanvasMouseDown}
->
-
-
+                        <div className="w-full bg-slate-950/90 border border-slate-800 rounded-2xl p-3 shadow-xl shadow-black/50 overflow-hidden">
+                            <div
+                                ref={canvasRef}
+                                className="relative w-full max-w-full h-[calc(100vh-120px)] rounded-2xl overflow-hidden cursor-default"
+                                style={{
+                                    backgroundImage:
+                                        "linear-gradient(to right, rgba(148,163,184,0.18) 1px, transparent 1px), linear-gradient(to bottom, rgba(148,163,184,0.18) 1px, transparent 1px)",
+                                    backgroundSize: "40px 40px",
+                                    backgroundColor: "#020617",
+                                }}
+                                onClick={handleCanvasClick}
+                                onMouseDown={handleCanvasMouseDown}
+                            >
                                 {/* STAGE */}
                                 {stage && stage.width > 4 && stage.height > 4 && (
                                     <div
