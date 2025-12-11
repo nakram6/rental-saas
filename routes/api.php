@@ -9,9 +9,18 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
 
-// 👇 Items API
-// For now I’m keeping them PUBLIC for easy testing.
-// Later you can wrap these in Route::middleware('auth:sanctum')->group(...)
+/*
+|--------------------------------------------------------------------------
+| Items API
+|--------------------------------------------------------------------------
+| For now these are PUBLIC for easy testing.
+| Later, you can wrap them in a Route::middleware('auth:sanctum')->group(...)
+| so only logged-in users can access them.
+*/
+
+// 👇 Image upload must come BEFORE /items/{item}
+Route::post('/items/upload-image', [ItemController::class, 'uploadImage']);
+
 Route::get('/items', [ItemController::class, 'index']);
 Route::post('/items', [ItemController::class, 'store']);
 Route::get('/items/{item}', [ItemController::class, 'show']);

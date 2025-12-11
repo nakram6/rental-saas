@@ -934,19 +934,19 @@ const { theme } = useTheme();
 
                     {/* canvas + side panels */}
                     <div className="relative w-full overflow-hidden">
-                        <div className="w-full bg-slate-950/90 border border-slate-800 rounded-2xl p-3 shadow-xl shadow-black/50 overflow-hidden">
+                      <div className="w-full">
+
                             <div
-                                ref={canvasRef}
-                                className="relative w-full max-w-full h-[calc(100vh-120px)] rounded-2xl overflow-hidden cursor-default"
-                                style={{
-                                    backgroundImage:
-                                        "linear-gradient(to right, rgba(148,163,184,0.18) 1px, transparent 1px), linear-gradient(to bottom, rgba(148,163,184,0.18) 1px, transparent 1px)",
-                                    backgroundSize: "40px 40px",
-                                    backgroundColor: "#020617",
-                                }}
-                                onClick={handleCanvasClick}
-                                onMouseDown={handleCanvasMouseDown}
-                            >
+    ref={canvasRef}
+    className="relative w-full max-w-full h-[calc(100vh-120px)] rounded-2xl overflow-hidden cursor-default"
+    style={{
+        // plain white canvas, no grid
+        backgroundColor: "#ffffff",
+    }}
+    onClick={handleCanvasClick}
+    onMouseDown={handleCanvasMouseDown}
+>
+
                                 {/* STAGE */}
                                 {stage && stage.width > 4 && stage.height > 4 && (
                                     <div
