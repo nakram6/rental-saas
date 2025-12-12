@@ -27,15 +27,7 @@ function isActive(pattern) {
     }
 }
 
-function SideNavLink({
-    href,
-    active,
-    children,
-    theme,
-    onClick,
-    isButton = false,
-    disabled = false,
-}) {
+function SideNavLink({ href, active, children, theme, onClick, isButton = false, disabled = false }) {
     const isDark = theme !== 'light';
 
     const base =
@@ -46,8 +38,8 @@ function SideNavLink({
             ? 'bg-slate-800 text-amber-300 font-semibold'
             : 'bg-gray-900 text-white font-semibold'
         : isDark
-          ? 'text-slate-200 hover:bg-slate-800/60'
-          : 'text-gray-700 hover:bg-gray-100';
+        ? 'text-slate-200 hover:bg-slate-800/60'
+        : 'text-gray-700 hover:bg-gray-100';
 
     const disabledCls = disabled ? 'opacity-50 cursor-not-allowed' : '';
 
@@ -87,9 +79,7 @@ function SidebarGroup({ title, icon, theme, open, onToggle, children }) {
                 onClick={onToggle}
                 className={
                     'w-full flex items-center justify-between px-3 py-2 rounded-lg text-sm transition ' +
-                    (isDark
-                        ? 'text-slate-200 hover:bg-slate-800/60'
-                        : 'text-gray-700 hover:bg-gray-100')
+                    (isDark ? 'text-slate-200 hover:bg-slate-800/60' : 'text-gray-700 hover:bg-gray-100')
                 }
             >
                 <span className="flex items-center gap-2">
@@ -134,6 +124,15 @@ export default function AuthenticatedLayout({ header, children }) {
 
     const t = themeConfig[theme] ?? themeConfig.dark;
 
+    // route existence checks (avoid errors)
+    const has = (name) => {
+        try {
+            return route().has(name);
+        } catch {
+            return false;
+        }
+    };
+
     /**
      * Default open state:
      * Open any group if a route inside it is active.
@@ -148,6 +147,7 @@ export default function AuthenticatedLayout({ header, children }) {
             reports: isActive('reports.*'),
             settings: isActive('settings.*') || isActive('team.*') || isActive('branding.*'),
         };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     // ✅ Stateful open/close
@@ -155,15 +155,6 @@ export default function AuthenticatedLayout({ header, children }) {
 
     const toggleGroup = (key) => {
         setOpenGroups((prev) => ({ ...prev, [key]: !prev[key] }));
-    };
-
-    // route existence checks (avoid errors)
-    const has = (name) => {
-        try {
-            return route().has(name);
-        } catch {
-            return false;
-        }
     };
 
     return (
@@ -174,7 +165,7 @@ export default function AuthenticatedLayout({ header, children }) {
                     <div className="flex h-16 justify-between">
                         <div className="flex">
                             <div className="flex shrink-0 items-center">
-                                <Link href="/">
+                                <Link href={safeHref('home')}>
                                     <ApplicationLogo className="block h-9 w-auto fill-current text-gray-800" />
                                 </Link>
                             </div>
@@ -195,6 +186,14 @@ export default function AuthenticatedLayout({ header, children }) {
 
                                 <NavLink href={safeHref('bookings.index')} active={isActive('bookings.*')}>
                                     Bookings
+                                </NavLink>
+
+                                <NavLink href={safeHref('customers.index')} active={isActive('customers.*')}>
+                                    Customers
+                                </NavLink>
+
+                                <NavLink href={safeHref('reports.index')} active={isActive('reports.*')}>
+                                    Reports
                                 </NavLink>
                             </div>
                         </div>
@@ -249,7 +248,7 @@ export default function AuthenticatedLayout({ header, children }) {
                                                 type="button"
                                                 className="inline-flex items-center rounded-md border border-transparent bg-white/90 px-3 py-2 text-sm font-medium leading-4 text-gray-500 transition duration-150 ease-in-out hover:text-gray-700 focus:outline-none"
                                             >
-                                                {user.name}
+                                                {user?.name ?? 'User'}
                                                 <svg
                                                     className="-me-0.5 ms-2 h-4 w-4"
                                                     xmlns="http://www.w3.org/2000/svg"
@@ -258,7 +257,7 @@ export default function AuthenticatedLayout({ header, children }) {
                                                 >
                                                     <path
                                                         fillRule="evenodd"
-                                                        d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 0 111.414 1.414l-4 4a1 0 01-1.414 0l-4-4a1 0 010-1.414z"
+                                                        d="M5.293 7.293a1 0 011.414 0L10 10.586l3.293-3.293a1 0 111.414 1.414l-4 4a1 0 01-1.414 0l-4-4a1 0 010-1.414z"
                                                         clipRule="evenodd"
                                                     />
                                                 </svg>
@@ -318,12 +317,18 @@ export default function AuthenticatedLayout({ header, children }) {
                         <ResponsiveNavLink href={safeHref('bookings.index')} active={isActive('bookings.*')}>
                             Bookings
                         </ResponsiveNavLink>
+                        <ResponsiveNavLink href={safeHref('customers.index')} active={isActive('customers.*')}>
+                            Customers
+                        </ResponsiveNavLink>
+                        <ResponsiveNavLink href={safeHref('reports.index')} active={isActive('reports.*')}>
+                            Reports
+                        </ResponsiveNavLink>
                     </div>
 
                     <div className="border-t border-gray-200 pb-1 pt-4">
                         <div className="px-4">
-                            <div className="text-base font-medium text-gray-800">{user.name}</div>
-                            <div className="text-sm font-medium text-gray-500">{user.email}</div>
+                            <div className="text-base font-medium text-gray-800">{user?.name ?? 'User'}</div>
+                            <div className="text-sm font-medium text-gray-500">{user?.email ?? ''}</div>
                         </div>
 
                         <div className="mt-3 space-y-1">
@@ -512,7 +517,7 @@ export default function AuthenticatedLayout({ header, children }) {
                         >
                             <SideNavLink
                                 href={safeHref('customers.index')}
-                                active={isActive('customers.index')}
+                                active={isActive('customers.*')}
                                 theme={theme}
                                 disabled={!has('customers.index')}
                             >
@@ -531,7 +536,7 @@ export default function AuthenticatedLayout({ header, children }) {
                             </SideNavLink>
                         </SidebarGroup>
 
-                        {/* Reports */}
+                        {/* Reports (✅ FULL) */}
                         <SidebarGroup
                             title="Reports"
                             icon="📈"
@@ -540,24 +545,105 @@ export default function AuthenticatedLayout({ header, children }) {
                             onToggle={() => toggleGroup('reports')}
                         >
                             <SideNavLink
-                                href={safeHref('reports.revenue')}
-                                active={isActive('reports.revenue')}
+                                href={safeHref('reports.index')}
+                                active={isActive('reports.index')}
                                 theme={theme}
-                                disabled={!has('reports.revenue')}
+                                disabled={!has('reports.index')}
                             >
                                 <span>•</span>
-                                <span>Revenue</span>
+                                <span>Reports Home</span>
                             </SideNavLink>
 
                             <SideNavLink
-                                href={safeHref('reports.popular')}
-                                active={isActive('reports.popular')}
+                                href={safeHref('reports.sales')}
+                                active={isActive('reports.sales')}
                                 theme={theme}
-                                disabled={!has('reports.popular')}
+                                disabled={!has('reports.sales')}
                             >
                                 <span>•</span>
-                                <span>Popular Items</span>
+                                <span>Sales</span>
                             </SideNavLink>
+
+                            <SideNavLink
+                                href={safeHref('reports.customers')}
+                                active={isActive('reports.customers')}
+                                theme={theme}
+                                disabled={!has('reports.customers')}
+                            >
+                                <span>•</span>
+                                <span>Customers</span>
+                            </SideNavLink>
+
+                            <SideNavLink
+                                href={safeHref('reports.inventory')}
+                                active={isActive('reports.inventory')}
+                                theme={theme}
+                                disabled={!has('reports.inventory')}
+                            >
+                                <span>•</span>
+                                <span>Inventory</span>
+                            </SideNavLink>
+
+                            <SideNavLink
+                                href={safeHref('reports.bookings')}
+                                active={isActive('reports.bookings')}
+                                theme={theme}
+                                disabled={!has('reports.bookings')}
+                            >
+                                <span>•</span>
+                                <span>Bookings</span>
+                            </SideNavLink>
+
+                            <SideNavLink
+                                href={safeHref('reports.planner')}
+                                active={isActive('reports.planner')}
+                                theme={theme}
+                                disabled={!has('reports.planner')}
+                            >
+                                <span>•</span>
+                                <span>Planner</span>
+                            </SideNavLink>
+
+
+<SideNavLink href={safeHref('reports.rentals')} active={isActive('reports.rentals')} theme={theme} disabled={!has('reports.rentals')}>
+  <span>•</span><span>Rentals</span>
+</SideNavLink>
+
+<SideNavLink href={safeHref('reports.overdue')} active={isActive('reports.overdue')} theme={theme} disabled={!has('reports.overdue')}>
+  <span>•</span><span>Overdue</span>
+</SideNavLink>
+
+<SideNavLink href={safeHref('reports.payments')} active={isActive('reports.payments')} theme={theme} disabled={!has('reports.payments')}>
+  <span>•</span><span>Payments</span>
+</SideNavLink>
+
+<SideNavLink href={safeHref('reports.utilization')} active={isActive('reports.utilization')} theme={theme} disabled={!has('reports.utilization')}>
+  <span>•</span><span>Utilization</span>
+</SideNavLink>
+
+<SideNavLink href={safeHref('reports.damaged')} active={isActive('reports.damaged')} theme={theme} disabled={!has('reports.damaged')}>
+  <span>•</span><span>Damaged / Loss</span>
+</SideNavLink>
+
+<SideNavLink href={safeHref('reports.maintenance')} active={isActive('reports.maintenance')} theme={theme} disabled={!has('reports.maintenance')}>
+  <span>•</span><span>Maintenance</span>
+</SideNavLink>
+
+<SideNavLink href={safeHref('reports.quotes')} active={isActive('reports.quotes')} theme={theme} disabled={!has('reports.quotes')}>
+  <span>•</span><span>Quotes</span>
+</SideNavLink>
+
+<SideNavLink
+    href={safeHref('reports.catalog')}
+    active={isActive('reports.catalog')}
+    theme={theme}
+>
+    <span>•</span>
+    <span>Item Catalog</span>
+</SideNavLink>
+
+
+
                         </SidebarGroup>
 
                         {/* Settings */}
@@ -605,9 +691,7 @@ export default function AuthenticatedLayout({ header, children }) {
                 <div className="flex-1 flex flex-col">
                     {header && (
                         <header className={`${t.header} shadow`}>
-                            <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
-                                {header}
-                            </div>
+                            <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">{header}</div>
                         </header>
                     )}
 

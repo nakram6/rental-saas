@@ -20,6 +20,10 @@ Route::get('/', [PublicCatalogController::class, 'home'])->name('home');
 Route::get('/catalog', [PublicCatalogController::class, 'index'])->name('catalog');
 Route::get('/quote', [PublicCatalogController::class, 'quote'])->name('quote.show');
 
+// Public (shareable) catalog link
+Route::get('/public/catalog/{token}', [CatalogReportController::class, 'publicCatalog'])
+    ->name('public.catalog');
+
 /*
 |--------------------------------------------------------------------------
 | Dashboard (Admin)
@@ -81,8 +85,35 @@ Route::delete('/customers/{customer}', [CustomerController::class, 'destroy'])
 
 
 
+// Reports Home
+Route::get('/reports', fn() => Inertia::render('Reports/Index'))->name('reports.index');
 
+// Core reports
+Route::get('/reports/sales', fn() => Inertia::render('Reports/Sales'))->name('reports.sales');
+Route::get('/reports/customers', fn() => Inertia::render('Reports/Customers'))->name('reports.customers');
+Route::get('/reports/inventory', fn() => Inertia::render('Reports/Inventory'))->name('reports.inventory');
+Route::get('/reports/bookings', fn() => Inertia::render('Reports/Bookings'))->name('reports.bookings');
+Route::get('/reports/planner', fn() => Inertia::render('Reports/Planner'))->name('reports.planner');
 
+// ✅ More reports
+Route::get('/reports/rentals', fn() => Inertia::render('Reports/Rentals'))->name('reports.rentals');
+Route::get('/reports/overdue', fn() => Inertia::render('Reports/Overdue'))->name('reports.overdue');
+Route::get('/reports/payments', fn() => Inertia::render('Reports/Payments'))->name('reports.payments');
+Route::get('/reports/utilization', fn() => Inertia::render('Reports/Utilization'))->name('reports.utilization');
+Route::get('/reports/damaged', fn() => Inertia::render('Reports/Damaged'))->name('reports.damaged');
+Route::get('/reports/maintenance', fn() => Inertia::render('Reports/Maintenance'))->name('reports.maintenance');
+Route::get('/reports/quotes', fn() => Inertia::render('Reports/Quotes'))->name('reports.quotes');
+
+Route::middleware(['auth'])->group(function () {
+    Route::get('/reports/catalog', [\App\Http\Controllers\Reports\CatalogReportController::class, 'index'])
+        ->name('reports.catalog');
+
+    Route::post('/reports/catalog/email', [\App\Http\Controllers\Reports\CatalogReportController::class, 'sendEmail'])
+        ->name('reports.catalog.email');
+});
+
+Route::get('/reports/catalog', [CatalogReportController::class, 'index'])->name('reports.catalog');
+    Route::post('/reports/catalog/email', [CatalogReportController::class, 'sendEmail'])->name('reports.catalog.email');
 
 
 });
