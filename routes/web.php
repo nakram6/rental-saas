@@ -5,6 +5,8 @@ use App\Http\Controllers\PublicCatalogController;
 use App\Http\Controllers\BookingController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\Reports\CatalogReportController;
+use App\Http\Controllers\Accounting\InvoiceUiController;
+use App\Http\Controllers\Accounting\InvoiceController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -118,6 +120,13 @@ Route::get('/reports/catalog', [CatalogReportController::class, 'index'])
 
     Route::post('/reports/catalog/email', [CatalogReportController::class, 'sendEmail'])
         ->name('reports.catalog.email');
+
+
+        Route::get('/accounting/invoices/create', [InvoiceUiController::class, 'create'])
+        ->name('accounting.invoices.create');
+
+    Route::post('/accounting/invoices', [InvoiceController::class, 'store'])
+        ->name('accounting.invoices.store');
 
 });
 
