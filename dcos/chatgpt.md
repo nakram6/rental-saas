@@ -1273,3 +1273,203 @@ Paste it into a new ChatGPT window and say:
 “Continue from this reference. I want to finish Planner DB-based library integration.”
 
 You’ll be able to continue without losing context 🚀
+
+
+
+
+
+
+CONTEXT CAPSULE — Rental SaaS (Catalog + Email + Reports)
+
+Project
+
+Laravel 12 + Inertia + React (Vite)
+
+Multi-tenant rental SaaS (Harbour Decor Rentals)
+
+Theme system: light / dark / gold
+
+Authenticated admin dashboard
+
+🧩 Core Features Implemented
+
+Customers
+
+Tenant-scoped customers
+
+CRUD routes: index, create, show, update, delete
+
+Fixed 403 issues by ensuring users.tenant_id exists
+
+Customers table migration corrected and re-run
+
+Reports System
+
+Reports sidebar with sections:
+
+Reports Home
+
+Sales
+
+Customers
+
+Inventory
+
+Bookings
+
+Planner
+
+Rentals
+
+Overdue
+
+Payments
+
+Utilization
+
+Damaged / Loss
+
+Maintenance
+
+Quotes
+
+Catalog Report (Important)
+
+Admin catalog page (Inertia):
+
+/reports/catalog
+
+
+Shows item cards with:
+
+image
+
+name
+
+category
+
+price
+
+Button: Send Catalog
+
+📧 Email Catalog (Working Setup)
+
+Controller:
+
+App\Http\Controllers\Reports\CatalogReportController
+
+
+Routes:
+
+Route::get('/reports/catalog', [CatalogReportController::class, 'index'])
+    ->name('reports.catalog');
+
+Route::post('/reports/catalog/email', [CatalogReportController::class, 'sendEmail'])
+    ->name('reports.catalog.email');
+
+
+Email flow:
+
+Generates public catalog link
+
+Generates PDF catalog using barryvdh/laravel-dompdf
+
+Sends email with:
+
+link
+
+PDF attachment
+
+Mail class:
+
+App\Mail\CatalogReportMail
+
+🖨 PDF
+
+Package installed:
+
+composer require barryvdh/laravel-dompdf
+
+
+PDF view:
+
+resources/views/pdf/catalog.blade.php
+
+📬 Email Testing (IMPORTANT – EASY MODE)
+
+Mailpit used instead of Gmail / SendGrid
+
+Installed via:
+
+brew install mailpit
+
+
+Run:
+
+mailpit
+
+
+Inbox:
+
+http://localhost:8025
+
+
+Laravel .env:
+
+MAIL_MAILER=smtp
+MAIL_HOST=127.0.0.1
+MAIL_PORT=1025
+MAIL_USERNAME=null
+MAIL_PASSWORD=null
+MAIL_ENCRYPTION=null
+MAIL_FROM_ADDRESS=dev@harbourdecor.test
+MAIL_FROM_NAME="Harbour Decor Rentals"
+
+
+Test:
+
+Mail::raw('Test email', function ($m) {
+    $m->to('test@example.com')->subject('Mailpit works');
+});
+
+🎨 UI
+
+Modern card-based dashboard
+
+Elegant catalog grid
+
+Theme-aware styling
+
+Sidebar uses safe route helpers to avoid crashes
+
+🚀 Next Logical Steps
+
+Save sent catalogs history
+
+Select customer instead of typing email
+
+Download PDF button
+
+Public catalog branding
+
+Switch Mailpit → SendGrid in production
+
+Add analytics to reports
+
+🧠 Instruction for New ChatGPT Window
+
+Paste everything above and say:
+
+“Continue from this context. We are building the Catalog Report + Reports system. Mailpit is installed and working.”
+
+If you want, I can also:
+
+Convert this into a README.md
+
+Create a project roadmap
+
+Generate a diagram (flow + architecture)
+
+Just tell me 😊
+
+ChatGPT can ma

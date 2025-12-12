@@ -56,3 +56,17 @@ mysql -u root -p rental_saas_copy < /Users/falak/Desktop/rental_saas.sql
 
 
 npm install html2canvas jspdf
+
+
+
+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
+
+Mailpit listening on http://localhost:8025
+SMTP listening on 127.0.0.1:1025
+
+
+php artisan tinker
+
+Mail::raw('Catalog test via Mailpit', function ($m) {
+    $m->to('customer@example.com')->subject('Catalog Preview');
+});

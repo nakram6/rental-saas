@@ -4,6 +4,7 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\PublicCatalogController;
 use App\Http\Controllers\BookingController;
 use App\Http\Controllers\CustomerController;
+use App\Http\Controllers\Reports\CatalogReportController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -112,9 +113,11 @@ Route::middleware(['auth'])->group(function () {
         ->name('reports.catalog.email');
 });
 
-Route::get('/reports/catalog', [CatalogReportController::class, 'index'])->name('reports.catalog');
-    Route::post('/reports/catalog/email', [CatalogReportController::class, 'sendEmail'])->name('reports.catalog.email');
+Route::get('/reports/catalog', [CatalogReportController::class, 'index'])
+        ->name('reports.catalog');
 
+    Route::post('/reports/catalog/email', [CatalogReportController::class, 'sendEmail'])
+        ->name('reports.catalog.email');
 
 });
 
