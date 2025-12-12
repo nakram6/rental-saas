@@ -1191,3 +1191,85 @@ export default function Planner({ auth }) {
         </AuthenticatedLayout>
     );
 }
+
+
+
+
+
+
+
+
+
+PROJECT REFERENCE — Rental SaaS (Laravel 12 + Inertia + React)
+1️⃣ Tech Stack
+
+Backend: Laravel 12 (PHP 8.4)
+
+Frontend: Inertia.js + React
+
+Auth: Laravel Breeze
+
+DB: MySQL (multi-tenant setup)
+
+Storage: public/storage for uploaded images
+
+PDF Export: html2canvas + jsPDF
+
+Themes: Custom ThemeContext (light / dark / gold
+
+
+Planner (React / Inertia)
+
+Canvas-based decoration planner
+
+Drag / resize / rotate decor items
+
+No grid
+
+White canvas background
+
+No canvas border
+
+PDF export works
+
+Uses ThemeContext
+
+Current Behavior
+
+Library was localStorage-based
+
+Goal: Move library to DB
+
+Planner should:
+
+Load decor library from /api/decor-library
+
+Save new items to DB
+
+Drag DB items directly onto canvas
+
+Connect Planner library to /api/decor-library
+
+
+Replace localStorage logic
+
+
+Auto-load DB items on page load
+
+
+Add drag-from-library → canvas
+
+
+Handle image upload + preview
+
+
+Add tenant awareness (already partially implemented)
+
+
+
+✅ Copy Everything Above
+Paste it into a new ChatGPT window and say:
+
+“Continue from this reference. I want to finish Planner DB-based library integration.”
+
+You’ll be able to continue without losing context 🚀

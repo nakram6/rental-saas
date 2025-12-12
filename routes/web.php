@@ -3,6 +3,7 @@
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\PublicCatalogController;
 use App\Http\Controllers\BookingController;
+use App\Http\Controllers\CustomerController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -66,6 +67,24 @@ Route::get('/bookings', [BookingController::class, 'index'])->name('bookings.ind
     Route::put('/bookings/{booking}', [BookingController::class, 'update'])->name('bookings.update');
     Route::delete('/bookings/{booking}', [BookingController::class, 'destroy'])->name('bookings.destroy');
 
+ Route::get('/customers', [CustomerController::class, 'index'])->name('customers.index');
+    Route::get('/customers/create', [CustomerController::class, 'create'])->name('customers.create');
+    Route::post('/customers', [CustomerController::class, 'store'])->name('customers.store');
+    Route::get('/customers/{customer}', [CustomerController::class, 'show'])->name('customers.show');
+ 
+    
+Route::put('/customers/{customer}', [CustomerController::class, 'update'])
+    ->name('customers.update');
+
+Route::delete('/customers/{customer}', [CustomerController::class, 'destroy'])
+    ->name('customers.destroy');
+
+
+
+
+
+
+
 });
 
 
@@ -90,3 +109,4 @@ Route::get('/test-tenant', function () {
 */
 
 require __DIR__.'/auth.php';
+

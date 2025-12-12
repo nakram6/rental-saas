@@ -3,39 +3,114 @@ import Dropdown from '@/Components/Dropdown';
 import NavLink from '@/Components/NavLink';
 import ResponsiveNavLink from '@/Components/ResponsiveNavLink';
 import { Link, usePage } from '@inertiajs/react';
-import { useState } from 'react';
-import { useTheme } from '@/Context/ThemeContext'; // ✅ use theme
+import { useMemo, useState } from 'react';
+import { useTheme } from '@/Context/ThemeContext';
 
-function SideNavLink({ href, active, children, theme }) {
+/**
+ * Safe helpers so your layout does NOT crash if a route doesn't exist yet.
+ * When you create the route later, the link will start working automatically.
+ */
+function safeHref(name, params = {}) {
+    try {
+        if (route().has(name)) return route(name, params);
+        return '#';
+    } catch {
+        return '#';
+    }
+}
+
+function isActive(pattern) {
+    try {
+        return route().current(pattern);
+    } catch {
+        return false;
+    }
+}
+
+function SideNavLink({
+    href,
+    active,
+    children,
+    theme,
+    onClick,
+    isButton = false,
+    disabled = false,
+}) {
     const isDark = theme !== 'light';
+
+    const base =
+        'flex items-center gap-2 px-4 py-2 text-sm rounded-lg mb-1 transition w-full text-left ';
+
+    const classes = active
+        ? isDark
+            ? 'bg-slate-800 text-amber-300 font-semibold'
+            : 'bg-gray-900 text-white font-semibold'
+        : isDark
+          ? 'text-slate-200 hover:bg-slate-800/60'
+          : 'text-gray-700 hover:bg-gray-100';
+
+    const disabledCls = disabled ? 'opacity-50 cursor-not-allowed' : '';
+
+    if (isButton) {
+        return (
+            <button
+                type="button"
+                onClick={onClick}
+                className={base + classes + ' ' + disabledCls}
+                disabled={disabled}
+            >
+                {children}
+            </button>
+        );
+    }
 
     return (
         <Link
-            href={href}
-            className={
-                'flex items-center gap-2 px-4 py-2 text-sm rounded-lg mb-1 transition ' +
-                (active
-                    ? (isDark
-                        ? 'bg-slate-800 text-amber-300 font-semibold'
-                        : 'bg-gray-900 text-white font-semibold')
-                    : (isDark
-                        ? 'text-slate-200 hover:bg-slate-800/60'
-                        : 'text-gray-700 hover:bg-gray-100'))
-            }
+            href={disabled ? '#' : href}
+            className={base + classes + ' ' + disabledCls}
+            onClick={(e) => {
+                if (disabled) e.preventDefault();
+            }}
         >
             {children}
         </Link>
     );
 }
 
+function SidebarGroup({ title, icon, theme, open, onToggle, children }) {
+    const isDark = theme !== 'light';
+
+    return (
+        <div className="mb-2">
+            <button
+                type="button"
+                onClick={onToggle}
+                className={
+                    'w-full flex items-center justify-between px-3 py-2 rounded-lg text-sm transition ' +
+                    (isDark
+                        ? 'text-slate-200 hover:bg-slate-800/60'
+                        : 'text-gray-700 hover:bg-gray-100')
+                }
+            >
+                <span className="flex items-center gap-2">
+                    <span className="text-lg">{icon}</span>
+                    <span className="font-semibold">{title}</span>
+                </span>
+                <span className={open ? 'rotate-90 transition' : 'transition'}>▶</span>
+            </button>
+
+            {open && <div className="mt-1 pl-4">{children}</div>}
+        </div>
+    );
+}
+
 export default function AuthenticatedLayout({ header, children }) {
     const user = usePage().props.auth.user;
-    const [showingNavigationDropdown, setShowingNavigationDropdown] =
-        useState(false);
+    const [showingNavigationDropdown, setShowingNavigationDropdown] = useState(false);
 
-    const { theme, setTheme } = useTheme(); // ✅ get current theme
+    const { theme, setTheme } = useTheme();
 
-    // Simple theme config
+    // Theme config
     const themeConfig = {
         light: {
             root: 'bg-gray-100 text-gray-900',
@@ -50,7 +125,6 @@ export default function AuthenticatedLayout({ header, children }) {
             header: 'bg-slate-900',
         },
         gold: {
-            // dark blue + gold
             root: 'bg-[#020617] text-amber-50',
             nav: 'bg-[#020617] border-slate-800',
             sidebar: 'bg-[#020617] border-slate-800',
@@ -60,9 +134,41 @@ export default function AuthenticatedLayout({ header, children }) {
 
     const t = themeConfig[theme] ?? themeConfig.dark;
 
+    /**
+     * Default open state:
+     * Open any group if a route inside it is active.
+     */
+    const defaultOpen = useMemo(() => {
+        return {
+            planner: isActive('planner') || isActive('decor-library.*') || isActive('layouts.*'),
+            inventory: isActive('items.*') || isActive('categories.*') || isActive('maintenance.*'),
+            bookings: isActive('bookings.*') || isActive('calendar.*') || isActive('quotes.*') || isActive('returns.*'),
+            rentals: isActive('rentals.*') || isActive('due.*') || isActive('overdue.*'),
+            customers: isActive('customers.*'),
+            reports: isActive('reports.*'),
+            settings: isActive('settings.*') || isActive('team.*') || isActive('branding.*'),
+        };
+    }, []);
+
+    // ✅ Stateful open/close
+    const [openGroups, setOpenGroups] = useState(defaultOpen);
+
+    const toggleGroup = (key) => {
+        setOpenGroups((prev) => ({ ...prev, [key]: !prev[key] }));
+    };
+
+    // route existence checks (avoid errors)
+    const has = (name) => {
+        try {
+            return route().has(name);
+        } catch {
+            return false;
+        }
+    };
+
     return (
         <div className={`min-h-screen flex flex-col ${t.root}`}>
-            {/* ========== TOP NAV (original Breeze style, themed) ========== */}
+            {/* TOP NAV */}
             <nav className={`border-b ${t.nav}`}>
                 <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
                     <div className="flex h-16 justify-between">
@@ -73,34 +179,21 @@ export default function AuthenticatedLayout({ header, children }) {
                                 </Link>
                             </div>
 
+                            {/* Top nav links */}
                             <div className="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
-                                <NavLink
-                                    href={route('dashboard')}
-                                    active={route().current('dashboard')}
-                                >
+                                <NavLink href={safeHref('dashboard')} active={isActive('dashboard')}>
                                     Dashboard
                                 </NavLink>
 
-                                <NavLink
-                                    href={route('items.index')}
-                                    active={route().current('items.index')}
-                                >
+                                <NavLink href={safeHref('items.index')} active={isActive('items.*')}>
                                     Items
                                 </NavLink>
 
-                                {/* Planner */}
-                                <NavLink
-                                    href={route('planner')} // change route name if needed
-                                    active={route().current('planner')}
-                                >
+                                <NavLink href={safeHref('planner')} active={isActive('planner')}>
                                     Planner
                                 </NavLink>
 
-                                {/* Bookings */}
-                                <NavLink
-                                    href={route('bookings.index')} // change if needed
-                                    active={route().current('bookings.index')}
-                                >
+                                <NavLink href={safeHref('bookings.index')} active={isActive('bookings.*')}>
                                     Bookings
                                 </NavLink>
                             </div>
@@ -157,7 +250,6 @@ export default function AuthenticatedLayout({ header, children }) {
                                                 className="inline-flex items-center rounded-md border border-transparent bg-white/90 px-3 py-2 text-sm font-medium leading-4 text-gray-500 transition duration-150 ease-in-out hover:text-gray-700 focus:outline-none"
                                             >
                                                 {user.name}
-
                                                 <svg
                                                     className="-me-0.5 ms-2 h-4 w-4"
                                                     xmlns="http://www.w3.org/2000/svg"
@@ -166,7 +258,7 @@ export default function AuthenticatedLayout({ header, children }) {
                                                 >
                                                     <path
                                                         fillRule="evenodd"
-                                                        d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+                                                        d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 0 111.414 1.414l-4 4a1 0 01-1.414 0l-4-4a1 0 010-1.414z"
                                                         clipRule="evenodd"
                                                     />
                                                 </svg>
@@ -175,14 +267,8 @@ export default function AuthenticatedLayout({ header, children }) {
                                     </Dropdown.Trigger>
 
                                     <Dropdown.Content>
-                                        <Dropdown.Link href={route('profile.edit')}>
-                                            Profile
-                                        </Dropdown.Link>
-                                        <Dropdown.Link
-                                            href={route('logout')}
-                                            method="post"
-                                            as="button"
-                                        >
+                                        <Dropdown.Link href={safeHref('profile.edit')}>Profile</Dropdown.Link>
+                                        <Dropdown.Link href={safeHref('logout')} method="post" as="button">
                                             Log Out
                                         </Dropdown.Link>
                                     </Dropdown.Content>
@@ -193,30 +279,19 @@ export default function AuthenticatedLayout({ header, children }) {
                         {/* Mobile burger */}
                         <div className="-me-2 flex items-center sm:hidden">
                             <button
-                                onClick={() =>
-                                    setShowingNavigationDropdown((previous) => !previous)
-                                }
+                                onClick={() => setShowingNavigationDropdown((p) => !p)}
                                 className="inline-flex items-center justify-center rounded-md p-2 text-gray-400 transition duration-150 ease-in-out hover:bg-gray-100 hover:text-gray-500 focus:bg-gray-100 focus:text-gray-500 focus:outline-none"
                             >
-                                <svg
-                                    className="h-6 w-6"
-                                    stroke="currentColor"
-                                    fill="none"
-                                    viewBox="0 0 24 24"
-                                >
+                                <svg className="h-6 w-6" stroke="currentColor" fill="none" viewBox="0 0 24 24">
                                     <path
-                                        className={
-                                            !showingNavigationDropdown ? 'inline-flex' : 'hidden'
-                                        }
+                                        className={!showingNavigationDropdown ? 'inline-flex' : 'hidden'}
                                         strokeLinecap="round"
                                         strokeLinejoin="round"
                                         strokeWidth="2"
                                         d="M4 6h16M4 12h16M4 18h16"
                                     />
                                     <path
-                                        className={
-                                            showingNavigationDropdown ? 'inline-flex' : 'hidden'
-                                        }
+                                        className={showingNavigationDropdown ? 'inline-flex' : 'hidden'}
                                         strokeLinecap="round"
                                         strokeLinejoin="round"
                                         strokeWidth="2"
@@ -228,61 +303,32 @@ export default function AuthenticatedLayout({ header, children }) {
                     </div>
                 </div>
 
-                {/* MOBILE NAV LINKS (with Planner + Bookings) */}
-                <div
-                    className={
-                        (showingNavigationDropdown ? 'block' : 'hidden') + ' sm:hidden'
-                    }
-                >
+                {/* MOBILE NAV LINKS */}
+                <div className={(showingNavigationDropdown ? 'block' : 'hidden') + ' sm:hidden'}>
                     <div className="space-y-1 pb-3 pt-2">
-                        <ResponsiveNavLink
-                            href={route('dashboard')}
-                            active={route().current('dashboard')}
-                        >
+                        <ResponsiveNavLink href={safeHref('dashboard')} active={isActive('dashboard')}>
                             Dashboard
                         </ResponsiveNavLink>
-
-                        <ResponsiveNavLink
-                            href={route('items.index')}
-                            active={route().current('items.index')}
-                        >
+                        <ResponsiveNavLink href={safeHref('items.index')} active={isActive('items.*')}>
                             Items
                         </ResponsiveNavLink>
-
-                        <ResponsiveNavLink
-                            href={route('planner')}
-                            active={route().current('planner')}
-                        >
+                        <ResponsiveNavLink href={safeHref('planner')} active={isActive('planner')}>
                             Planner
                         </ResponsiveNavLink>
-
-                        <ResponsiveNavLink
-                            href={route('bookings.index')}
-                            active={route().current('bookings.index')}
-                        >
+                        <ResponsiveNavLink href={safeHref('bookings.index')} active={isActive('bookings.*')}>
                             Bookings
                         </ResponsiveNavLink>
                     </div>
 
                     <div className="border-t border-gray-200 pb-1 pt-4">
                         <div className="px-4">
-                            <div className="text-base font-medium text-gray-800">
-                                {user.name}
-                            </div>
-                            <div className="text-sm font-medium text-gray-500">
-                                {user.email}
-                            </div>
+                            <div className="text-base font-medium text-gray-800">{user.name}</div>
+                            <div className="text-sm font-medium text-gray-500">{user.email}</div>
                         </div>
 
                         <div className="mt-3 space-y-1">
-                            <ResponsiveNavLink href={route('profile.edit')}>
-                                Profile
-                            </ResponsiveNavLink>
-                            <ResponsiveNavLink
-                                method="post"
-                                href={route('logout')}
-                                as="button"
-                            >
+                            <ResponsiveNavLink href={safeHref('profile.edit')}>Profile</ResponsiveNavLink>
+                            <ResponsiveNavLink method="post" href={safeHref('logout')} as="button">
                                 Log Out
                             </ResponsiveNavLink>
                         </div>
@@ -290,46 +336,272 @@ export default function AuthenticatedLayout({ header, children }) {
                 </div>
             </nav>
 
-            {/* ========== MAIN LAYOUT: sidebar at extreme left + header + content ========== */}
+            {/* MAIN LAYOUT */}
             <div className="flex flex-1">
                 {/* Sidebar */}
-                <aside
-                    className={`hidden md:block w-64 min-h-[calc(100vh-4rem)] pt-6 border-r ${t.sidebar}`}
-                >
+                <aside className={`hidden md:block w-64 min-h-[calc(100vh-4rem)] pt-6 border-r ${t.sidebar}`}>
                     <div className="px-4 text-xs font-semibold uppercase tracking-wide text-gray-400 mb-3">
                         Admin navigation
                     </div>
+
                     <nav className="px-2">
-                        <SideNavLink
-                            href={route('dashboard')}
-                            active={route().current('dashboard')}
-                            theme={theme}
-                        >
-                            <span className="text-lg">🏠</span>
+                        {/* Dashboard */}
+                        <SideNavLink href={safeHref('dashboard')} active={isActive('dashboard')} theme={theme}>
+                            <span className="text-lg">📊</span>
                             <span>Dashboard</span>
                         </SideNavLink>
 
-                        <SideNavLink
-                            href={route('planner')}
-                            active={route().current('planner')}
+                        {/* Planner */}
+                        <SidebarGroup
+                            title="Planner"
+                            icon="🛋️"
                             theme={theme}
+                            open={openGroups.planner}
+                            onToggle={() => toggleGroup('planner')}
                         >
-                            <span className="text-lg">🛋️</span>
-                            <span>Decoration planner</span>
-                        </SideNavLink>
+                            <SideNavLink href={safeHref('planner')} active={isActive('planner')} theme={theme}>
+                                <span>•</span>
+                                <span>Decoration Planner</span>
+                            </SideNavLink>
 
-                        <SideNavLink
-                            href={route('bookings.index')}
-                            active={route().current('bookings.index')}
+                            <SideNavLink
+                                href={safeHref('decor-library.index')}
+                                active={isActive('decor-library.*')}
+                                theme={theme}
+                                disabled={!has('decor-library.index')}
+                            >
+                                <span>•</span>
+                                <span>Decor Library</span>
+                            </SideNavLink>
+
+                            <SideNavLink
+                                href={safeHref('layouts.index')}
+                                active={isActive('layouts.*')}
+                                theme={theme}
+                                disabled={!has('layouts.index')}
+                            >
+                                <span>•</span>
+                                <span>Saved Layouts</span>
+                            </SideNavLink>
+                        </SidebarGroup>
+
+                        {/* Inventory */}
+                        <SidebarGroup
+                            title="Inventory"
+                            icon="📦"
                             theme={theme}
+                            open={openGroups.inventory}
+                            onToggle={() => toggleGroup('inventory')}
                         >
-                            <span className="text-lg">📅</span>
-                            <span>Event bookings</span>
-                        </SideNavLink>
+                            <SideNavLink href={safeHref('items.index')} active={isActive('items.*')} theme={theme}>
+                                <span>•</span>
+                                <span>Items</span>
+                            </SideNavLink>
+
+                            <SideNavLink
+                                href={safeHref('categories.index')}
+                                active={isActive('categories.*')}
+                                theme={theme}
+                                disabled={!has('categories.index')}
+                            >
+                                <span>•</span>
+                                <span>Categories / Tags</span>
+                            </SideNavLink>
+
+                            <SideNavLink
+                                href={safeHref('maintenance.index')}
+                                active={isActive('maintenance.*')}
+                                theme={theme}
+                                disabled={!has('maintenance.index')}
+                            >
+                                <span>•</span>
+                                <span>Maintenance</span>
+                            </SideNavLink>
+                        </SidebarGroup>
+
+                        {/* Bookings */}
+                        <SidebarGroup
+                            title="Bookings"
+                            icon="📅"
+                            theme={theme}
+                            open={openGroups.bookings}
+                            onToggle={() => toggleGroup('bookings')}
+                        >
+                            <SideNavLink href={safeHref('bookings.index')} active={isActive('bookings.*')} theme={theme}>
+                                <span>•</span>
+                                <span>All Bookings</span>
+                            </SideNavLink>
+
+                            <SideNavLink
+                                href={safeHref('calendar.index')}
+                                active={isActive('calendar.*')}
+                                theme={theme}
+                                disabled={!has('calendar.index')}
+                            >
+                                <span>•</span>
+                                <span>Calendar View</span>
+                            </SideNavLink>
+
+                            <SideNavLink
+                                href={safeHref('quotes.index')}
+                                active={isActive('quotes.*')}
+                                theme={theme}
+                                disabled={!has('quotes.index')}
+                            >
+                                <span>•</span>
+                                <span>Quotes / Inquiries</span>
+                            </SideNavLink>
+
+                            <SideNavLink
+                                href={safeHref('returns.index')}
+                                active={isActive('returns.*')}
+                                theme={theme}
+                                disabled={!has('returns.index')}
+                            >
+                                <span>•</span>
+                                <span>Returns</span>
+                            </SideNavLink>
+                        </SidebarGroup>
+
+                        {/* Rentals */}
+                        <SidebarGroup
+                            title="Rentals"
+                            icon="🚚"
+                            theme={theme}
+                            open={openGroups.rentals}
+                            onToggle={() => toggleGroup('rentals')}
+                        >
+                            <SideNavLink
+                                href={safeHref('rentals.onrent')}
+                                active={isActive('rentals.onrent')}
+                                theme={theme}
+                                disabled={!has('rentals.onrent')}
+                            >
+                                <span>•</span>
+                                <span>On Rent</span>
+                            </SideNavLink>
+
+                            <SideNavLink
+                                href={safeHref('due.today')}
+                                active={isActive('due.today')}
+                                theme={theme}
+                                disabled={!has('due.today')}
+                            >
+                                <span>•</span>
+                                <span>Due Today</span>
+                            </SideNavLink>
+
+                            <SideNavLink
+                                href={safeHref('overdue.index')}
+                                active={isActive('overdue.*')}
+                                theme={theme}
+                                disabled={!has('overdue.index')}
+                            >
+                                <span>•</span>
+                                <span>Overdue</span>
+                            </SideNavLink>
+                        </SidebarGroup>
+
+                        {/* Customers */}
+                        <SidebarGroup
+                            title="Customers"
+                            icon="👥"
+                            theme={theme}
+                            open={openGroups.customers}
+                            onToggle={() => toggleGroup('customers')}
+                        >
+                            <SideNavLink
+                                href={safeHref('customers.index')}
+                                active={isActive('customers.index')}
+                                theme={theme}
+                                disabled={!has('customers.index')}
+                            >
+                                <span>•</span>
+                                <span>Customers List</span>
+                            </SideNavLink>
+
+                            <SideNavLink
+                                href={safeHref('customers.create')}
+                                active={isActive('customers.create')}
+                                theme={theme}
+                                disabled={!has('customers.create')}
+                            >
+                                <span>•</span>
+                                <span>Add Customer</span>
+                            </SideNavLink>
+                        </SidebarGroup>
+
+                        {/* Reports */}
+                        <SidebarGroup
+                            title="Reports"
+                            icon="📈"
+                            theme={theme}
+                            open={openGroups.reports}
+                            onToggle={() => toggleGroup('reports')}
+                        >
+                            <SideNavLink
+                                href={safeHref('reports.revenue')}
+                                active={isActive('reports.revenue')}
+                                theme={theme}
+                                disabled={!has('reports.revenue')}
+                            >
+                                <span>•</span>
+                                <span>Revenue</span>
+                            </SideNavLink>
+
+                            <SideNavLink
+                                href={safeHref('reports.popular')}
+                                active={isActive('reports.popular')}
+                                theme={theme}
+                                disabled={!has('reports.popular')}
+                            >
+                                <span>•</span>
+                                <span>Popular Items</span>
+                            </SideNavLink>
+                        </SidebarGroup>
+
+                        {/* Settings */}
+                        <SidebarGroup
+                            title="Settings"
+                            icon="⚙️"
+                            theme={theme}
+                            open={openGroups.settings}
+                            onToggle={() => toggleGroup('settings')}
+                        >
+                            <SideNavLink
+                                href={safeHref('branding.index')}
+                                active={isActive('branding.*')}
+                                theme={theme}
+                                disabled={!has('branding.index')}
+                            >
+                                <span>•</span>
+                                <span>Branding</span>
+                            </SideNavLink>
+
+                            <SideNavLink
+                                href={safeHref('team.index')}
+                                active={isActive('team.*')}
+                                theme={theme}
+                                disabled={!has('team.index')}
+                            >
+                                <span>•</span>
+                                <span>Team / Roles</span>
+                            </SideNavLink>
+
+                            <SideNavLink
+                                href={safeHref('settings.rules')}
+                                active={isActive('settings.rules')}
+                                theme={theme}
+                                disabled={!has('settings.rules')}
+                            >
+                                <span>•</span>
+                                <span>Booking Rules</span>
+                            </SideNavLink>
+                        </SidebarGroup>
                     </nav>
                 </aside>
 
-                {/* Right side: old header + main content, full width after sidebar */}
+                {/* Right side: header + main content */}
                 <div className="flex-1 flex flex-col">
                     {header && (
                         <header className={`${t.header} shadow`}>
@@ -339,9 +611,7 @@ export default function AuthenticatedLayout({ header, children }) {
                         </header>
                     )}
 
-                    <main className="flex-1 px-4 py-6 sm:px-6 lg:px-8">
-                        {children}
-                    </main>
+                    <main className="flex-1 px-4 py-6 sm:px-6 lg:px-8">{children}</main>
                 </div>
             </div>
         </div>

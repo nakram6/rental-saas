@@ -11,7 +11,7 @@ class PublicCatalogController extends Controller
     // HOME PAGE
     public function home()
     {
-        $tenant = app('currentTenant');
+        $tenant = $this->tenantOrFail();
 
         // Featured items (limit 8)
         $items = Item::where('tenant_id', $tenant->id)
@@ -29,7 +29,7 @@ class PublicCatalogController extends Controller
     // CATALOG PAGE
     public function index()
     {
-        $tenant = app('currentTenant');
+        $tenant = $this->tenantOrFail();
 
         $items = Item::where('tenant_id', $tenant->id)
             ->where('is_active', true)
@@ -46,13 +46,30 @@ class PublicCatalogController extends Controller
   // NEW: quote page (front-end only for now)
     public function quote()
     {
-        $tenant = app('currentTenant');
+        $tenant = $this->tenantOrFail();
 
         return Inertia::render('Public/Quote', [
             'tenant' => $tenant,
         ]);
     }
 
+
+
+    
+private function tenantOrFail()
+{
+    if (!app()->bound('currentTenant')) {
+        abort(404, 'Tenant not resolved (currentTenant not bound).');
+    }
+
+    $tenant = app('currentTenant');
+
+    if (!$tenant) {
+        abort(404, 'Tenant not found.');
+    }
+
+    return $tenant;
+}
 
 
 
