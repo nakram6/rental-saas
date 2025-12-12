@@ -59,7 +59,7 @@ npm install html2canvas jspdf
 
 
 
-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
+
 
 Mailpit listening on http://localhost:8025
 SMTP listening on 127.0.0.1:1025
