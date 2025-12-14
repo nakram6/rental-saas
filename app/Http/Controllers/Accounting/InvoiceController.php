@@ -62,7 +62,7 @@ public function updateStatus(Request $request, \App\Models\Invoice $invoice)
     $newStatus = $data['status'];
     $oldStatus = $invoice->status;
 
-    \DB::transaction(function () use ($invoice, $user, $newStatus, $oldStatus) {
+    DB::transaction(function () use ($invoice, $user, $newStatus, $oldStatus) {
 
         // ✅ Only create journal when moving → PAID
         if ($newStatus === 'paid' && $oldStatus !== 'paid') {
