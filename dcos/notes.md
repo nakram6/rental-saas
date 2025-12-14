@@ -352,3 +352,14 @@ Partial payments
 Refund journals
 
 Just say the wo
+
+
+
+
+Invoice → Journal Entry → Journal Lines → General Ledger → Trial Balance
+
+Journal Entries record each transaction
+
+General Ledger shows movements per account
+
+Trial Balance summarizes all account balances

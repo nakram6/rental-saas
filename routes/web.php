@@ -14,6 +14,9 @@ use App\Http\Controllers\Accounting\InvoiceUiController;
 use App\Http\Controllers\Accounting\InvoiceController;
 use App\Http\Controllers\Accounting\InvoicePdfController;
 use App\Http\Controllers\Accounting\GeneralLedgerController;
+ use App\Http\Controllers\Accounting\JournalEntryController;
+ use App\Http\Controllers\Accounting\TrialBalanceController;
+
 
 use App\Models\JournalEntry;
 
@@ -118,6 +121,15 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/accounting/general-ledger', [GeneralLedgerController::class, 'index'])
         ->name('accounting.general-ledger');
 
+
+
+
+
+Route::get('/accounting/trial-balance', [TrialBalanceController::class, 'index'])
+    ->name('accounting.trial-balance');
+
+        
+
     /*
     |--------------------------------------------------------------------------
     | Debug routes (Auth only)
@@ -143,6 +155,13 @@ Route::middleware(['auth'])->group(function () {
 
     Route::get('/accounting/general-ledger/export', [GeneralLedgerController::class, 'export'])
     ->name('accounting.general-ledger.export');
+
+
+   
+
+Route::get('/accounting/journal-entries/{journalEntry}', [JournalEntryController::class, 'show'])
+    ->name('accounting.journal-entries.show');
+
 
 });
 

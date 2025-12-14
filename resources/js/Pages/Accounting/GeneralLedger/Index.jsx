@@ -239,7 +239,13 @@ export default function Index({ accounts = [], lines = [], filters = {}, opening
                         {fmtDate(line.journal_entry?.date)}
                       </td>
                       <td className="p-3 whitespace-nowrap">
-                        JE-{line.journal_entry_id}
+                       <a
+  href={`/accounting/journal-entries/${line.journal_entry_id}`}
+  className="underline hover:no-underline"
+>
+  JE-{line.journal_entry_id}
+</a>
+
                       </td>
                       <td className="p-3">
                         {line.memo || line.journal_entry?.description || ""}
