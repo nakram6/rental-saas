@@ -7,6 +7,7 @@ use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\Reports\CatalogReportController;
 use App\Http\Controllers\Accounting\InvoiceUiController;
 use App\Http\Controllers\Accounting\InvoiceController;
+use App\Http\Controllers\Accounting\InvoicePdfController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -120,6 +121,18 @@ Route::middleware(['auth'])->group(function () {
 
     Route::post('/accounting/invoices', [InvoiceController::class, 'store'])
         ->name('accounting.invoices.store');
+
+Route::get('/accounting/invoices/{invoice}/pdf', [InvoicePdfController::class, 'stream'])
+    ->name('accounting.invoices.pdf');
+
+Route::get('/accounting/invoices/{invoice}/pdf/download', [InvoicePdfController::class, 'download'])
+    ->name('accounting.invoices.pdf.download');
+
+    Route::patch('/accounting/invoices/{invoice}/status', [InvoiceController::class, 'updateStatus'])
+    ->name('accounting.invoices.status');
+
+
+
 });
 
 
