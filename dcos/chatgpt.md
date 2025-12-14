@@ -1279,197 +1279,135 @@ You’ll be able to continue without losing context 🚀
 
 
 
-CONTEXT CAPSULE — Rental SaaS (Catalog + Email + Reports)
+C
 
-Project
 
-Laravel 12 + Inertia + React (Vite)
 
-Multi-tenant rental SaaS (Harbour Decor Rentals)
 
-Theme system: light / dark / gold
 
-Authenticated admin dashboard
 
-🧩 Core Features Implemented
 
-Customers
 
-Tenant-scoped customers
 
-CRUD routes: index, create, show, update, delete
 
-Fixed 403 issues by ensuring users.tenant_id exists
+CHAT REFERENCE — Rental-SaaS (Customers + Invoices + Accounting)
 
-Customers table migration corrected and re-run
+Project: Rental-SaaS (Laravel 12 + Inertia + React + Vite + Tailwind)
 
-Reports System
+✅ Current Status (Working)
 
-Reports sidebar with sections:
+Laravel backend + React (Inertia) frontend is running
 
-Reports Home
+npm run dev OK
 
-Sales
+Routes confirmed with php artisan route:list
 
-Customers
+📁 Customers Module (FIXED)
+Routes
+customers.index
+customers.create
+customers.store
+customers.show
+customers.update
+customers.destroy
+customers.pdf
+customers.pdf.download
+customers.email
 
-Inventory
+Files (Separated Correctly)
+resources/js/Pages/Customers/
+├── Index.jsx     (Customer list)
+├── Show.jsx      (Customer profile + PDF + Email)
+└── Create.jsx    (Create customer)
 
-Bookings
+Key Fix
 
-Planner
+❌ Problem: Multiple export default function Show() pasted into one file
+✅ Solution: Split into one component per file
 
-Rentals
+📄 Customer Features Implemented
 
-Overdue
+Customer list with search & status filter
 
-Payments
+Customer profile edit
 
-Utilization
+PDF preview & download (Blade → DomPDF)
 
-Damaged / Loss
+Email customer PDF
 
-Maintenance
+Tenant-safe access
 
-Quotes
+Toast success/error messages
 
-Catalog Report (Important)
+🧾 Invoices Module (WORKING)
 
-Admin catalog page (Inertia):
+Invoice list (Index.jsx)
 
-/reports/catalog
+Create invoice
 
+Status update (draft → sent → paid → void)
 
-Shows item cards with:
+Paid invoices locked
 
-image
+PDF preview & download
 
-name
+Journal entry auto-created when invoice becomes paid
 
-category
+📘 Accounting Logic
 
-price
+Journal = ledger of double-entry transactions
 
-Button: Send Catalog
+On invoice → paid:
 
-📧 Email Catalog (Working Setup)
+Debit: Cash
 
-Controller:
+Credit: Accounts Receivable
 
-App\Http\Controllers\Reports\CatalogReportController
+Prevents duplicate journal entries
 
+🎨 Theme Context Note (IMPORTANT)
 
-Routes:
+useTheme() was removed from pages temporarily
 
-Route::get('/reports/catalog', [CatalogReportController::class, 'index'])
-    ->name('reports.catalog');
+Reason: Pages rendered outside ThemeProvider caused blank screen
 
-Route::post('/reports/catalog/email', [CatalogReportController::class, 'sendEmail'])
-    ->name('reports.catalog.email');
+Fix options:
 
+Wrap entire app in ThemeProvider in app.jsx (recommended)
 
-Email flow:
+Or avoid useTheme() in pages
 
-Generates public catalog link
+(Currently working without useTheme())
 
-Generates PDF catalog using barryvdh/laravel-dompdf
+🧠 Key Lessons
 
-Sends email with:
+Inertia pages must live in:
 
-link
+resources/js/Pages/...
 
-PDF attachment
 
-Mail class:
+Only ONE default export per file
 
-App\Mail\CatalogReportMail
+Context hooks crash silently if provider is missing
 
-🖨 PDF
+PDFs should use Blade, not React
 
-Package installed:
+Journals ≠ invoices (ledger vs document)
 
-composer require barryvdh/laravel-dompdf
+🔜 Next Suggested Steps
 
+Customer booking history table
 
-PDF view:
+Reports → Customer statement
 
-resources/views/pdf/catalog.blade.php
+Invoices → email invoice PDF
 
-📬 Email Testing (IMPORTANT – EASY MODE)
+Accounting → General ledger view
 
-Mailpit used instead of Gmail / SendGrid
+Global ThemeProvider restoration
 
-Installed via:
+✅ You can now open a new ChatGPT window and paste this entire reference
 
-brew install mailpit
+I’ll immediately continue from here without confusion.
 
-
-Run:
-
-mailpit
-
-
-Inbox:
-
-http://localhost:8025
-
-
-Laravel .env:
-
-MAIL_MAILER=smtp
-MAIL_HOST=127.0.0.1
-MAIL_PORT=1025
-MAIL_USERNAME=null
-MAIL_PASSWORD=null
-MAIL_ENCRYPTION=null
-MAIL_FROM_ADDRESS=dev@harbourdecor.test
-MAIL_FROM_NAME="Harbour Decor Rentals"
-
-
-Test:
-
-Mail::raw('Test email', function ($m) {
-    $m->to('test@example.com')->subject('Mailpit works');
-});
-
-🎨 UI
-
-Modern card-based dashboard
-
-Elegant catalog grid
-
-Theme-aware styling
-
-Sidebar uses safe route helpers to avoid crashes
-
-🚀 Next Logical Steps
-
-Save sent catalogs history
-
-Select customer instead of typing email
-
-Download PDF button
-
-Public catalog branding
-
-Switch Mailpit → SendGrid in production
-
-Add analytics to reports
-
-🧠 Instruction for New ChatGPT Window
-
-Paste everything above and say:
-
-“Continue from this context. We are building the Catalog Report + Reports system. Mailpit is installed and working.”
-
-If you want, I can also:
-
-Convert this into a README.md
-
-Create a project roadmap
-
-Generate a diagram (flow + architecture)
-
-Just tell me 😊
-
-ChatGPT can ma
+If you want, I can also generate a README.md or project roadmap from this.

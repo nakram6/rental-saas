@@ -71,6 +71,19 @@ Route::middleware(['auth'])->group(function () {
     Route::put('/customers/{customer}', [CustomerController::class, 'update'])->name('customers.update');
     Route::delete('/customers/{customer}', [CustomerController::class, 'destroy'])->name('customers.destroy');
 
+    
+    // ✅ Add these 3
+Route::get('/customers/{customer}/pdf', [CustomerController::class, 'pdf'])
+    ->name('customers.pdf');
+
+Route::get('/customers/{customer}/pdf/download', [CustomerController::class, 'pdfDownload'])
+    ->name('customers.pdf.download');
+
+Route::post('/customers/{customer}/email', [CustomerController::class, 'emailPdf'])
+    ->name('customers.email');
+    
+    
+    
     // Reports pages (Inertia)
     Route::get('/reports', fn () => Inertia::render('Reports/Index'))->name('reports.index');
     Route::get('/reports/sales', fn () => Inertia::render('Reports/Sales'))->name('reports.sales');

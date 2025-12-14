@@ -6,6 +6,10 @@ use App\Models\Customer;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
+// ✅ NEW imports
+use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Support\Facades\Mail;
+
 class CustomerController extends Controller
 {
     public function index(Request $request)
@@ -97,22 +101,21 @@ class CustomerController extends Controller
     }
 
     public function show(Request $request, Customer $customer)
-{
-    $user = $request->user();
+    {
+        $user = $request->user();
 
-    if (!$user || !$user->tenant_id) {
-        abort(403, 'tenant_id is missing for this user');
+        if (!$user || !$user->tenant_id) {
+            abort(403, 'tenant_id is missing for this user');
+        }
+
+        if ($customer->tenant_id !== $user->tenant_id) {
+            abort(403, 'Forbidden');
+        }
+
+        return Inertia::render('Customers/Show', [
+            'customer' => $customer,
+        ]);
     }
-
-    if ($customer->tenant_id !== $user->tenant_id) {
-        abort(403, 'Forbidden');
-    }
-
-    // 👇 THIS IS THE LINE YOU ARE ASKING ABOUT
-    return Inertia::render('Customers/Show', [
-        'customer' => $customer,
-    ]);
-}
 
     public function update(Request $request, Customer $customer)
     {
@@ -162,7 +165,82 @@ class CustomerController extends Controller
             ->with('success', 'Customer deleted successfully.');
     }
 
+    /*
+    |--------------------------------------------------------------------------
+    | ✅ NEW: PDF + Email actions
+    |--------------------------------------------------------------------------
+    */
 
-    
+    public function pdf(Request $request, Customer $customer)
+    {
+        $user = $request->user();
+        abort_unless($user && $user->tenant_id, 403, 'tenant_id missing');
+        abort_unless($customer->tenant_id === $user->tenant_id, 403, 'Forbidden');
 
+        $pdf = Pdf::loadView('pdf.customer', [
+            'customer' => $customer,
+            // put your real branding here later
+            'company' => [
+                'name' => 'Harbour Decor Rentals',
+                'phone' => '000-000-0000',
+                'address' => 'Your Address Here',
+                'email' => 'dev@harbourdecor.test',
+            ],
+        ]);
+
+        return $pdf->stream("customer-{$customer->id}.pdf");
+    }
+
+    public function pdfDownload(Request $request, Customer $customer)
+    {
+        $user = $request->user();
+        abort_unless($user && $user->tenant_id, 403, 'tenant_id missing');
+        abort_unless($customer->tenant_id === $user->tenant_id, 403, 'Forbidden');
+
+        $pdf = Pdf::loadView('pdf.customer', [
+            'customer' => $customer,
+            'company' => [
+                'name' => 'Harbour Decor Rentals',
+                'phone' => '000-000-0000',
+                'address' => 'Your Address Here',
+                'email' => 'dev@harbourdecor.test',
+            ],
+        ]);
+
+        return $pdf->download("customer-{$customer->id}.pdf");
+    }
+
+    public function emailPdf(Request $request, Customer $customer)
+    {
+        $user = $request->user();
+        abort_unless($user && $user->tenant_id, 403, 'tenant_id missing');
+        abort_unless($customer->tenant_id === $user->tenant_id, 403, 'Forbidden');
+
+        $data = $request->validate([
+            'to' => 'nullable|email',
+            'subject' => 'nullable|string|max:255',
+            'message' => 'nullable|string',
+        ]);
+
+        $to = $data['to'] ?? $customer->email;
+        abort_unless($to, 422, 'Customer email is missing');
+
+        $pdf = Pdf::loadView('pdf.customer', [
+            'customer' => $customer,
+            'company' => [
+                'name' => 'Harbour Decor Rentals',
+                'phone' => '000-000-0000',
+                'address' => 'Your Address Here',
+                'email' => 'dev@harbourdecor.test',
+            ],
+        ]);
+
+        Mail::raw($data['message'] ?? 'Customer profile attached.', function ($m) use ($to, $data, $pdf, $customer) {
+            $m->to($to)
+                ->subject($data['subject'] ?? "Customer Profile: {$customer->name}")
+                ->attachData($pdf->output(), "customer-{$customer->id}.pdf");
+        });
+
+        return back()->with('success', 'Email sent with customer PDF');
+    }
 }
