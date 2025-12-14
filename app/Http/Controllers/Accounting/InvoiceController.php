@@ -33,7 +33,8 @@ class InvoiceController extends Controller
         $tax = (float) ($data['tax'] ?? 0);
         $total = max(0, $subtotal - $discount) + $tax;
 
-        $next = Invoice::where('tenant_id', $user->tenant_id)->count() + 1;
+        $lastId = (int) Invoice::where('tenant_id', $user->tenant_id)->max('id');
+        $next = $lastId + 1;
 
         $invoice = Invoice::create([
             'tenant_id' => $user->tenant_id,
@@ -62,7 +63,7 @@ class InvoiceController extends Controller
         }
 
         return redirect()
-            ->route('accounting.invoices.create')
-            ->with('success', 'Invoice created successfully');
+    ->route('accounting.invoices.index')
+    ->with('success', 'Invoice created successfully');
     }
 }

@@ -31,7 +31,9 @@
     <div class="grid">
         @foreach($items as $item)
             <div class="card">
-                <img class="img" src="{{ $item['image_abs'] }}" alt="">
+                @if(!empty($item['image_abs']))
+    <img class="img" src="{{ $item['image_abs'] }}" alt="">
+@endif
                 <div class="p">
                     <span class="badge">Rental</span>
                     <div class="name">{{ $item['name'] }}</div>

@@ -145,6 +145,10 @@ export default function AuthenticatedLayout({ header, children }) {
             rentals: isActive('rentals.*') || isActive('due.*') || isActive('overdue.*'),
             customers: isActive('customers.*'),
             reports: isActive('reports.*'),
+
+            // ✅ NEW: Accounting group auto-opens on invoice routes
+            accounting: isActive('accounting.invoices.*') || isActive('accounting.*'),
+
             settings: isActive('settings.*') || isActive('team.*') || isActive('branding.*'),
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -194,6 +198,14 @@ export default function AuthenticatedLayout({ header, children }) {
 
                                 <NavLink href={safeHref('reports.index')} active={isActive('reports.*')}>
                                     Reports
+                                </NavLink>
+
+                                {/* ✅ NEW: Invoices top link (safe) */}
+                                <NavLink
+                                    href={safeHref('accounting.invoices.index')}
+                                    active={isActive('accounting.invoices.*')}
+                                >
+                                    Invoices
                                 </NavLink>
                             </div>
                         </div>
@@ -322,6 +334,14 @@ export default function AuthenticatedLayout({ header, children }) {
                         </ResponsiveNavLink>
                         <ResponsiveNavLink href={safeHref('reports.index')} active={isActive('reports.*')}>
                             Reports
+                        </ResponsiveNavLink>
+
+                        {/* ✅ NEW: Invoices mobile link */}
+                        <ResponsiveNavLink
+                            href={safeHref('accounting.invoices.index')}
+                            active={isActive('accounting.invoices.*')}
+                        >
+                            Invoices
                         </ResponsiveNavLink>
                     </div>
 
@@ -604,46 +624,67 @@ export default function AuthenticatedLayout({ header, children }) {
                                 <span>Planner</span>
                             </SideNavLink>
 
+                            <SideNavLink href={safeHref('reports.rentals')} active={isActive('reports.rentals')} theme={theme} disabled={!has('reports.rentals')}>
+                                <span>•</span><span>Rentals</span>
+                            </SideNavLink>
 
-<SideNavLink href={safeHref('reports.rentals')} active={isActive('reports.rentals')} theme={theme} disabled={!has('reports.rentals')}>
-  <span>•</span><span>Rentals</span>
-</SideNavLink>
+                            <SideNavLink href={safeHref('reports.overdue')} active={isActive('reports.overdue')} theme={theme} disabled={!has('reports.overdue')}>
+                                <span>•</span><span>Overdue</span>
+                            </SideNavLink>
 
-<SideNavLink href={safeHref('reports.overdue')} active={isActive('reports.overdue')} theme={theme} disabled={!has('reports.overdue')}>
-  <span>•</span><span>Overdue</span>
-</SideNavLink>
+                            <SideNavLink href={safeHref('reports.payments')} active={isActive('reports.payments')} theme={theme} disabled={!has('reports.payments')}>
+                                <span>•</span><span>Payments</span>
+                            </SideNavLink>
 
-<SideNavLink href={safeHref('reports.payments')} active={isActive('reports.payments')} theme={theme} disabled={!has('reports.payments')}>
-  <span>•</span><span>Payments</span>
-</SideNavLink>
+                            <SideNavLink href={safeHref('reports.utilization')} active={isActive('reports.utilization')} theme={theme} disabled={!has('reports.utilization')}>
+                                <span>•</span><span>Utilization</span>
+                            </SideNavLink>
 
-<SideNavLink href={safeHref('reports.utilization')} active={isActive('reports.utilization')} theme={theme} disabled={!has('reports.utilization')}>
-  <span>•</span><span>Utilization</span>
-</SideNavLink>
+                            <SideNavLink href={safeHref('reports.damaged')} active={isActive('reports.damaged')} theme={theme} disabled={!has('reports.damaged')}>
+                                <span>•</span><span>Damaged / Loss</span>
+                            </SideNavLink>
 
-<SideNavLink href={safeHref('reports.damaged')} active={isActive('reports.damaged')} theme={theme} disabled={!has('reports.damaged')}>
-  <span>•</span><span>Damaged / Loss</span>
-</SideNavLink>
+                            <SideNavLink href={safeHref('reports.maintenance')} active={isActive('reports.maintenance')} theme={theme} disabled={!has('reports.maintenance')}>
+                                <span>•</span><span>Maintenance</span>
+                            </SideNavLink>
 
-<SideNavLink href={safeHref('reports.maintenance')} active={isActive('reports.maintenance')} theme={theme} disabled={!has('reports.maintenance')}>
-  <span>•</span><span>Maintenance</span>
-</SideNavLink>
+                            <SideNavLink href={safeHref('reports.quotes')} active={isActive('reports.quotes')} theme={theme} disabled={!has('reports.quotes')}>
+                                <span>•</span><span>Quotes</span>
+                            </SideNavLink>
 
-<SideNavLink href={safeHref('reports.quotes')} active={isActive('reports.quotes')} theme={theme} disabled={!has('reports.quotes')}>
-  <span>•</span><span>Quotes</span>
-</SideNavLink>
+                            <SideNavLink href={safeHref('reports.catalog')} active={isActive('reports.catalog')} theme={theme}>
+                                <span>•</span>
+                                <span>Item Catalog</span>
+                            </SideNavLink>
+                        </SidebarGroup>
 
-<SideNavLink
-    href={safeHref('reports.catalog')}
-    active={isActive('reports.catalog')}
-    theme={theme}
->
-    <span>•</span>
-    <span>Item Catalog</span>
-</SideNavLink>
+                        {/* ✅ NEW: Accounting */}
+                        <SidebarGroup
+                            title="Accounting"
+                            icon="🧾"
+                            theme={theme}
+                            open={openGroups.accounting}
+                            onToggle={() => toggleGroup('accounting')}
+                        >
+                            <SideNavLink
+                                href={safeHref('accounting.invoices.index')}
+                                active={isActive('accounting.invoices.index')}
+                                theme={theme}
+                                disabled={!has('accounting.invoices.index')}
+                            >
+                                <span>•</span>
+                                <span>Invoices</span>
+                            </SideNavLink>
 
-
-
+                            <SideNavLink
+                                href={safeHref('accounting.invoices.create')}
+                                active={isActive('accounting.invoices.create')}
+                                theme={theme}
+                                disabled={!has('accounting.invoices.create')}
+                            >
+                                <span>•</span>
+                                <span>Create Invoice</span>
+                            </SideNavLink>
                         </SidebarGroup>
 
                         {/* Settings */}

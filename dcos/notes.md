@@ -49,9 +49,9 @@ On the computer that has the original rental_saas:
 
 mysqldump -u root -p rental_saas > rental_saas.sql
 
-mysql -u root -p -e "CREATE DATABASE rental_saas_copy;"
+mysql -u root -p -e "CREATE DATABASE rental_saas;"
 
-mysql -u root -p rental_saas_copy < /Users/falak/Desktop/rental_saas.sql
+mysql -u root -p rental_saas < /Users/nakram/Desktop/rental_saas.sql
 
 
 

@@ -1,17 +1,15 @@
 import React from "react";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
-import { Head, Link, usePage } from "@inertiajs/react";
+import { Head, Link } from "@inertiajs/react";
 import Toast from "@/Components/Toast";
+import { usePage } from "@inertiajs/react";
 
 export default function Index({ invoices }) {
-  const { flash } = usePage().props;
-
   return (
     <AuthenticatedLayout
       header={
         <div className="flex items-center justify-between">
           <h2 className="text-xl font-semibold leading-tight">Invoices</h2>
-
           <Link
             href={route("accounting.invoices.create")}
             className="px-4 py-2 rounded-xl bg-black text-white dark:bg-white dark:text-black"
@@ -23,14 +21,13 @@ export default function Index({ invoices }) {
     >
       <Head title="Invoices" />
 
-      {/* ✅ Toast (success message) */}
-      <Toast message={flash?.success} type="success" />
-
       <div className="max-w-6xl mx-auto p-4">
         <div className="rounded-xl bg-white dark:bg-zinc-900 shadow overflow-hidden">
           <div className="p-4 border-b border-black/10 dark:border-white/10 flex items-center justify-between">
             <div className="font-semibold">Invoices</div>
-            <div className="text-sm opacity-70">{invoices?.total ?? 0} total</div>
+            <div className="text-sm opacity-70">
+              {invoices?.total ?? 0} total
+            </div>
           </div>
 
           <div className="overflow-x-auto">
@@ -44,13 +41,9 @@ export default function Index({ invoices }) {
                   <th className="p-3 text-right">Total</th>
                 </tr>
               </thead>
-
               <tbody>
                 {invoices?.data?.map((inv) => (
-                  <tr
-                    key={inv.id}
-                    className="border-b border-black/5 dark:border-white/5"
-                  >
+                  <tr key={inv.id} className="border-b border-black/5 dark:border-white/5">
                     <td className="p-3 font-medium">{inv.invoice_no}</td>
                     <td className="p-3">{inv.issue_date ?? "-"}</td>
                     <td className="p-3">{inv.due_date ?? "-"}</td>
@@ -76,7 +69,7 @@ export default function Index({ invoices }) {
             </table>
           </div>
 
-          {/* Pagination */}
+          {/* Basic pagination */}
           {invoices?.links?.length > 3 && (
             <div className="p-4 flex flex-wrap gap-2 border-t border-black/10 dark:border-white/10">
               {invoices.links.map((l) => (
