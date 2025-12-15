@@ -1411,3 +1411,144 @@ Global ThemeProvider restoration
 I’ll immediately continue from here without confusion.
 
 If you want, I can also generate a README.md or project roadmap from this.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Project Reference – Rental SaaS Virtual Assistant
+
+Project: Rental SaaS (Event Décor Business – Harbour Decor Rentals)
+Stack:
+
+Laravel 12 (API + Web)
+
+React + Inertia (frontend)
+
+MySQL
+
+OpenAI (openai-php/laravel)
+
+Multi-tenant system (Tenant model + SetCurrentTenant middleware)
+
+🤖 Virtual Assistant (Current Status: ✅ Working)
+API Endpoint
+POST /api/assistant
+
+Controller
+App\Http\Controllers\Api\AssistantController@chat
+
+Features Implemented
+
+OpenAI chat integration (short, business-focused replies)
+
+System prompt tailored for event décor rentals
+
+Asks for: date, city, venue, guest count, colors, budget
+
+Rate-limit friendly retry logic (429 backoff)
+
+Session-based chat (assistant_sessions table)
+
+Message logging (assistant_messages table)
+
+Frontend chat history stored in localStorage
+
+Typing dots animation
+
+Quick action buttons:
+
+Check availability
+
+Get quote
+
+Suggest items
+
+Package ideas (basic / standard / premium)
+
+Floating assistant panel on right side of homepage
+
+🗄️ Database Tables
+assistant_sessions
+id
+tenant_name
+source   -- (public, admin, etc.)
+created_at
+updated_at
+
+assistant_messages
+id
+assistant_session_id (FK)
+role        -- user / assistant
+content
+created_at
+
+🧠 Tenant Setup (Important)
+
+Tenant table uses:
+
+id
+name
+slug
+timezone
+settings
+
+
+Example tenant record:
+
+Tenant::firstOrCreate(
+  ['slug' => 'localhost'],
+  ['name' => 'Harbour Decor Rentals']
+);
+
+
+Tenant is resolved via SetCurrentTenant middleware.
+
+🧪 Test Command
+curl -X POST http://localhost:8000/api/assistant \
+  -H "Content-Type: application/json" \
+  -H "Accept: application/json" \
+  -d '{"message":"hello","history":[]}'
+
+🖥️ Frontend
+
+File: resources/js/Pages/Home.jsx
+
+Assistant opens from floating button (bottom-right)
+
+Slide-in panel from the right
+
+Uses /api/assistant
+
+Session ID stored in localStorage
+
+🔑 OpenAI
+
+Uses openai-php/laravel
+
+API key in .env
+
+OPENAI_API_KEY=sk-xxxx
+
+✅ You can now open a new ChatGPT window and paste everything above to continue seamlessly.
+
+If you want, next we can:
+
+Add availability checking from bookings table
+
+Auto-create draft quotes
+
+Admin-side assistant
+
+Analytics dashboard (most asked questions)
+
+Voice assistant

@@ -190,6 +190,10 @@ Route::get('/test-tenant', function () {
     return ['message' => 'No currentTenant bound'];
 });
 
+
+
+
+
 /*
 |--------------------------------------------------------------------------
 | Auth Routes (Breeze)

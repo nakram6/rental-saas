@@ -3,6 +3,7 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ItemController;
+use App\Http\Controllers\Api\AssistantController;
 
 // Example existing route (keep it if you want)
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
@@ -31,3 +32,6 @@ Route::delete('/items/{item}', [ItemController::class, 'destroy']);
 Route::get('/ping', function () {
     return ['message' => 'pong'];
 });
+
+Route::post('/assistant', [AssistantController::class, 'chat'])
+    ->middleware('throttle:30,1');

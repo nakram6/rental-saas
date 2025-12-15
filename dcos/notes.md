@@ -363,3 +363,18 @@ Journal Entries record each transaction
 General Ledger shows movements per account
 
 Trial Balance summarizes all account balances
+
+
+
+
+
+ChatGPT is like Gmail, OpenAI API is like email protocols (SMTP/IMAP).
+
+
+Simple analogy (best one)
+
+OpenAI = Apple
+
+ChatGPT = iPhone
+
+OpenAI API = iOS S
