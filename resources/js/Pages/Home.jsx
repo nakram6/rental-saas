@@ -3,6 +3,10 @@ import { Head, Link } from "@inertiajs/react";
 import GuestLayout from "@/Layouts/GuestLayout";
 
 /**
+ * Home Page (Public)
+ * - Adds more modern sections + more placeholder images
+ * - Keeps your Virtual Assistant panel as-is
+ *
  * NOTE:
  * - Virtual Assistant uses POST /api/assistant
  */
@@ -14,6 +18,7 @@ export default function Home({ tenant, items = [] }) {
     const instagramProfileUrl = "https://www.instagram.com/harbourdecor/";
     const instagramEmbedUrl = "";
 
+    // Hero slides
     const slides = [
         {
             image: "/images/hero-sofa.jpg",
@@ -32,10 +37,14 @@ export default function Home({ tenant, items = [] }) {
         },
     ];
 
+    // Gallery / Events placeholders (reuse images — you will replace later)
     const eventImages = [
         "/images/events/event1.jpg",
         "/images/events/event2.jpg",
         "/images/events/event3.jpg",
+        "/images/hero-sofa.jpg",
+        "/images/hero-backdrop.jpg",
+        "/images/hero-centerpieces.jpg",
     ];
 
     const igImages = [
@@ -45,8 +54,12 @@ export default function Home({ tenant, items = [] }) {
         "/images/hero-sofa.jpg",
         "/images/hero-backdrop.jpg",
         "/images/hero-centerpieces.jpg",
+        "/images/events/event1.jpg",
+        "/images/events/event2.jpg",
+        "/images/events/event3.jpg",
     ];
 
+    // FAQ
     const [openFaqIndex, setOpenFaqIndex] = useState(0);
     const faqs = [
         {
@@ -102,7 +115,6 @@ export default function Home({ tenant, items = [] }) {
     const [pendingTool, setPendingTool] = useState(null); // "availability" | "quote" | null
 
     const todayISO = useMemo(() => {
-        // local date (prevents UTC off-by-1)
         const d = new Date();
         const yyyy = d.getFullYear();
         const mm = String(d.getMonth() + 1).padStart(2, "0");
@@ -211,7 +223,6 @@ export default function Home({ tenant, items = [] }) {
         return () => clearTimeout(t);
     }, [assistantOpen, messages.length]);
 
-    // ✅ Quick actions
     const quickActions = [
         { label: "Check availability", tool: "availability" },
         { label: "Get quote", tool: "quote" },
@@ -233,7 +244,6 @@ export default function Home({ tenant, items = [] }) {
         }
     }
 
-    // ✅ 429 retry helper
     async function postAssistant(payload, attempt = 0) {
         const res = await fetch("/api/assistant", {
             method: "POST",
@@ -265,10 +275,7 @@ export default function Home({ tenant, items = [] }) {
         setAssistantLoading(true);
         setPendingTool(null);
 
-        const nextHistory = [
-            ...history,
-            { role: "user", text: userSummaryText || toolName },
-        ];
+        const nextHistory = [...history, { role: "user", text: userSummaryText || toolName }];
         setHistory(nextHistory);
 
         try {
@@ -290,7 +297,7 @@ export default function Home({ tenant, items = [] }) {
             }
 
             const replyText = json?.reply || "Sorry, please try again.";
-            setHistory((h) => [...h, { role: "assistant", text: replyText }]);
+            setHistory((h) => [...h, { role: "assistant", text: replyText, intent: json?.intent || null, pdf: json?.pdf || null }]);
             if (!ok) setAssistantError(replyText);
         } catch {
             const fallback = "Network error. Please check your connection and try again.";
@@ -316,7 +323,6 @@ export default function Home({ tenant, items = [] }) {
                 : `Check availability: ${meta.date}`;
 
         await sendTool(AVAILABILITY_TOOL, meta, summary);
-
         setAvailabilityForm({ date: "", start_time: "", end_time: "" });
     }
 
@@ -331,14 +337,9 @@ export default function Home({ tenant, items = [] }) {
             notes: quoteForm.notes || null,
         };
 
-        const summary = `Create draft quote: ${meta.event_date}${
-            meta.guest_count ? ` · ${meta.guest_count} guests` : ""
-        }${meta.theme_colors ? ` · ${meta.theme_colors}` : ""}${
-            meta.budget ? ` · $${meta.budget}` : ""
-        }`;
+        const summary = `Create draft quote: ${meta.event_date}${meta.guest_count ? ` · ${meta.guest_count} guests` : ""}${meta.theme_colors ? ` · ${meta.theme_colors}` : ""}${meta.budget ? ` · $${meta.budget}` : ""}`;
 
         await sendTool(QUOTE_TOOL, meta, summary);
-
         setQuoteForm({ event_date: "", guest_count: "", theme_colors: "", budget: "", notes: "" });
     }
 
@@ -346,7 +347,6 @@ export default function Home({ tenant, items = [] }) {
         const msg = (overrideText ?? assistantText).trim();
         if (!msg || assistantLoading) return;
 
-        // If in availability mode, allow typed date parsing
         if (pendingTool === "availability") {
             const parsed = parseAvailabilityInput(msg);
 
@@ -389,16 +389,14 @@ export default function Home({ tenant, items = [] }) {
 
                 const replyText = json?.reply || "Sorry, please try again.";
                 setHistory((h) => [
-    ...h,
-    {
-        role: "assistant",
-        text: replyText,
-        intent: json?.intent || null,
-        pdf: json?.pdf || null,
-    },
-]);
-
-
+                    ...h,
+                    {
+                        role: "assistant",
+                        text: replyText,
+                        intent: json?.intent || null,
+                        pdf: json?.pdf || null,
+                    },
+                ]);
 
                 if (!ok) setAssistantError(replyText);
             } catch {
@@ -480,6 +478,71 @@ export default function Home({ tenant, items = [] }) {
         setTimeout(() => sendToAssistant(action.text), 50);
     }
 
+    // -----------------------------
+    // Featured items (from props)
+    // -----------------------------
+    const featured = useMemo(() => {
+        const list = Array.isArray(items) ? items : [];
+        return list.slice(0, 6);
+    }, [items]);
+
+    const services = [
+        {
+            title: "Full Wedding Styling",
+            text: "Stage, aisle, tables, and entry moments — designed as one cohesive look.",
+            icon: "💍",
+        },
+        {
+            title: "Backdrop + Florals",
+            text: "Modern backdrops with florals, draping, and lighting for photo-ready spaces.",
+            icon: "🌸",
+        },
+        {
+            title: "Table Décor",
+            text: "Centerpieces, candles, runners, charger plates — curated for your theme.",
+            icon: "🕯️",
+        },
+        {
+            title: "Setup + Teardown",
+            text: "Professional delivery, setup, and teardown — aligned with venue rules and timelines.",
+            icon: "🚚",
+        },
+    ];
+
+    const steps = [
+        {
+            title: "Share your date + venue",
+            text: "Use the assistant to check availability and tell us your event details.",
+        },
+        {
+            title: "Get a draft quote",
+            text: "We generate a clear PDF quote you can review and adjust.",
+        },
+        {
+            title: "Finalize your look",
+            text: "Choose items, colors, and packages — we confirm logistics and styling.",
+        },
+        {
+            title: "We set everything up",
+            text: "We handle delivery, setup, and teardown so you can enjoy your day.",
+        },
+    ];
+
+    const testimonials = [
+        {
+            name: "Ayesha",
+            text: "The stage setup was stunning — everyone kept taking photos. Super professional team.",
+        },
+        {
+            name: "Ravi",
+            text: "They matched our theme perfectly and made the venue look luxurious. Highly recommend!",
+        },
+        {
+            name: "Sana",
+            text: "Smooth process from quote to setup. Beautiful details and on-time delivery.",
+        },
+    ];
+
     return (
         <GuestLayout tenant={tenant}>
             <Head title={title} />
@@ -515,9 +578,7 @@ export default function Home({ tenant, items = [] }) {
                     {/* Header */}
                     <div className="px-4 py-4 border-b border-slate-800 flex items-center justify-between">
                         <div>
-                            <p className="text-[10px] uppercase tracking-[0.25em] text-amber-300">
-                                Virtual Assistant
-                            </p>
+                            <p className="text-[10px] uppercase tracking-[0.25em] text-amber-300">Virtual Assistant</p>
                             <h3 className="text-sm font-semibold text-white">{brandName}</h3>
                             {sessionId ? (
                                 <p className="text-[11px] text-slate-400 mt-1">
@@ -553,27 +614,26 @@ export default function Home({ tenant, items = [] }) {
                                 <div key={idx} className="space-y-2">
                                     <div className={`flex ${isUser ? "justify-end" : "justify-start"}`}>
                                         <div
-    className={`max-w-[85%] rounded-2xl px-3 py-2 text-sm leading-relaxed border ${
-        isUser
-            ? "bg-amber-400 text-slate-950 border-amber-300"
-            : "bg-slate-900 text-slate-100 border-slate-800"
-    }`}
->
-    <div>{m.text}</div>
+                                            className={`max-w-[85%] rounded-2xl px-3 py-2 text-sm leading-relaxed border ${
+                                                isUser
+                                                    ? "bg-amber-400 text-slate-950 border-amber-300"
+                                                    : "bg-slate-900 text-slate-100 border-slate-800"
+                                            }`}
+                                        >
+                                            <div>{m.text}</div>
 
-    {/* ✅ Quote PDF button */}
-    {m.intent === "quote_created" && m.pdf && (
-        <a
-            href={m.pdf}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="mt-2 inline-flex items-center gap-2 text-xs px-3 py-1.5 rounded-full bg-amber-400 text-slate-900 font-semibold hover:bg-amber-300 transition"
-        >
-            📄 Open Quote PDF
-        </a>
-    )}
-</div>
-
+                                            {/* ✅ Quote PDF button */}
+                                            {m.intent === "quote_created" && m.pdf && (
+                                                <a
+                                                    href={m.pdf}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="mt-2 inline-flex items-center gap-2 text-xs px-3 py-1.5 rounded-full bg-amber-400 text-slate-900 font-semibold hover:bg-amber-300 transition"
+                                                >
+                                                    📄 Open Quote PDF
+                                                </a>
+                                            )}
+                                        </div>
                                     </div>
 
                                     {/* ✅ Inline Availability Picker */}
@@ -752,9 +812,7 @@ export default function Home({ tenant, items = [] }) {
                                                 Create draft quote (PDF)
                                             </button>
 
-                                            <div className="text-[11px] text-slate-400">
-                                                You’ll get a PDF link instantly. We can refine items afterward.
-                                            </div>
+                                            <div className="text-[11px] text-slate-400">You’ll get a PDF link instantly. We can refine items afterward.</div>
                                         </div>
                                     )}
                                 </div>
@@ -791,9 +849,7 @@ export default function Home({ tenant, items = [] }) {
                             ))}
                         </div>
 
-                        {assistantError ? (
-                            <div className="mb-2 text-xs text-rose-300">{assistantError}</div>
-                        ) : null}
+                        {assistantError ? <div className="mb-2 text-xs text-rose-300">{assistantError}</div> : null}
 
                         <div className="flex gap-2">
                             <input
@@ -820,179 +876,256 @@ export default function Home({ tenant, items = [] }) {
                         </div>
 
                         <div className="mt-2 text-[11px] text-slate-400">
-                            Tip: share <span className="text-slate-200">date</span>,{" "}
-                            <span className="text-slate-200">city</span>,{" "}
-                            <span className="text-slate-200">venue</span>,{" "}
-                            <span className="text-slate-200">guests</span>,{" "}
-                            <span className="text-slate-200">colors</span>,{" "}
-                            <span className="text-slate-200">budget</span>.
+                            Tip: share <span className="text-slate-200">date</span>, <span className="text-slate-200">city</span>,{" "}
+                            <span className="text-slate-200">venue</span>, <span className="text-slate-200">guests</span>,{" "}
+                            <span className="text-slate-200">colors</span>, <span className="text-slate-200">budget</span>.
                         </div>
                     </div>
                 </div>
             </div>
 
             {/* HERO SLIDESHOW */}
-            <section className="relative h-[520px] sm:h-[620px] lg:h-[700px] overflow-hidden bg-slate-950">
-                <div
-                    className="absolute inset-0 bg-cover bg-center transition-all duration-700"
-                    style={{ backgroundImage: `url(${currentSlide.image})` }}
-                />
-                <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/60 to-black/20" />
+            <section className="relative h-[520px] sm:h-[640px] lg:h-[740px] overflow-hidden bg-slate-950 rounded-3xl">
+                <div className="absolute inset-0 bg-cover bg-center transition-all duration-700" style={{ backgroundImage: `url(${currentSlide.image})` }} />
+                <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/55 to-black/10" />
 
                 <div className="relative z-10 h-full max-w-6xl mx-auto px-4 flex flex-col justify-center">
-                    <p className="fade-in-up text-sm uppercase tracking-[0.25em] text-amber-300 mb-4">
-                        Event Décor Rentals · GTA & Windsor
-                    </p>
+                    <p className="reveal text-sm uppercase tracking-[0.25em] text-amber-300 mb-4">Event Décor Rentals · GTA & Windsor</p>
 
-                    <h1 className="fade-in-up delay-1 text-3xl sm:text-4xl lg:text-5xl font-extrabold text-white max-w-2xl leading-tight drop-shadow">
-                        {currentSlide.heading}
-                    </h1>
+                    <h1 className="reveal reveal-delay-1 text-3xl sm:text-4xl lg:text-5xl font-extrabold text-white max-w-2xl leading-tight drop-shadow">{currentSlide.heading}</h1>
 
-                    <p className="fade-in-up delay-2 mt-4 text-base sm:text-lg text-gray-200 max-w-xl">
-                        {currentSlide.text}
-                    </p>
+                    <p className="reveal reveal-delay-2 mt-4 text-base sm:text-lg text-gray-200 max-w-xl">{currentSlide.text}</p>
 
-                    <div className="fade-in-up delay-3 mt-6 flex flex-col sm:flex-row gap-3">
-                        <Link
-                            href="/catalog"
-                            className="inline-flex items-center justify-center px-6 py-3 rounded-full bg-amber-400 text-gray-900 font-semibold shadow-lg hover:bg-amber-300 transition"
-                        >
+                    <div className="reveal reveal-delay-3 mt-6 flex flex-col sm:flex-row gap-3">
+                        <Link href="/catalog" className="inline-flex items-center justify-center px-6 py-3 rounded-full bg-amber-400 text-gray-900 font-semibold shadow-lg hover:bg-amber-300 transition">
                             Browse Catalog
                         </Link>
-                        <a
-                            href="#featured"
-                            className="inline-flex items-center justify-center px-6 py-3 rounded-full border border-white/40 text-white font-medium hover:bg-white/10 transition"
-                        >
-                            View Featured Items
-                        </a>
+                        <Link href="/shop" className="inline-flex items-center justify-center px-6 py-3 rounded-full border border-white/40 text-white font-medium hover:bg-white/10 transition">
+                            Shop Items
+                        </Link>
+                    </div>
+
+                    <div className="reveal reveal-delay-4 mt-8 flex flex-wrap gap-2 text-[11px] text-slate-200/90">
+                        <span className="px-3 py-1 rounded-full border border-amber-400/60 bg-amber-500/10">Fast quote PDF</span>
+                        <span className="px-3 py-1 rounded-full border border-white/20 bg-white/10">Setup + teardown</span>
+                        <span className="px-3 py-1 rounded-full border border-white/20 bg-white/10">Modern + cultural styling</span>
                     </div>
                 </div>
 
-                {/* Slide controls */}
-                <button
-                    type="button"
-                    onClick={goPrev}
-                    className="absolute left-4 top-1/2 -translate-y-1/2 z-20 rounded-full bg-black/40 text-white w-9 h-9 flex items-center justify-center hover:bg-black/60"
-                >
-                    ‹
-                </button>
-                <button
-                    type="button"
-                    onClick={goNext}
-                    className="absolute right-4 top-1/2 -translate-y-1/2 z-20 rounded-full bg-black/40 text-white w-9 h-9 flex items-center justify-center hover:bg-black/60"
-                >
-                    ›
-                </button>
+                <button type="button" onClick={goPrev} className="absolute left-4 top-1/2 -translate-y-1/2 z-20 rounded-full bg-black/40 text-white w-9 h-9 flex items-center justify-center hover:bg-black/60">‹</button>
+                <button type="button" onClick={goNext} className="absolute right-4 top-1/2 -translate-y-1/2 z-20 rounded-full bg-black/40 text-white w-9 h-9 flex items-center justify-center hover:bg-black/60">›</button>
 
-                {/* Dots */}
                 <div className="absolute bottom-6 left-0 right-0 flex justify-center gap-2 z-20">
                     {slides.map((_, idx) => (
                         <button
                             key={idx}
                             type="button"
                             onClick={() => setCurrentIndex(idx)}
-                            className={`h-2 w-2 rounded-full border border-white ${
-                                idx === currentIndex ? "bg-amber-400" : "bg-white/20"
-                            }`}
+                            className={`h-2 w-2 rounded-full border border-white ${idx === currentIndex ? "bg-amber-400" : "bg-white/20"}`}
                         />
                     ))}
                 </div>
             </section>
 
-            {/* OVERLAPPING HIGHLIGHT STRIP */}
-            <section className="relative -mt-10 z-20">
-                <div className="max-w-6xl mx-auto px-4">
-                    <div className="fade-in-up bg-slate-900/90 border border-slate-800 rounded-2xl shadow-xl shadow-black/40 px-5 py-4 flex flex-col sm:flex-row gap-4 sm:items-center sm:justify-between">
-                        <div>
-                            <h2 className="text-sm font-semibold text-slate-50">
-                                Modern décor styling for weddings, showers & celebrations
-                            </h2>
-                            <p className="text-xs text-slate-400 mt-1">
-                                From first moodboard to the final candle, we design spaces
-                                that feel warm in person and look beautiful on camera.
-                            </p>
+            {/* WHY US? (matches your inspiration) */}
+            <section className="mt-12 rounded-3xl bg-[#f6f2e6] border border-black/10 overflow-hidden">
+                <div className="max-w-6xl mx-auto px-6 sm:px-10 py-12 grid gap-10 lg:grid-cols-2 items-center">
+                    <div>
+                        <p className="reveal text-xs uppercase tracking-[0.35em] text-amber-700">WHY US?</p>
+                        <h2 className="reveal reveal-delay-1 mt-3 text-4xl sm:text-5xl font-extrabold tracking-tight text-slate-950">
+                            Where Every Event Tells a Story
+                        </h2>
+                        <p className="reveal reveal-delay-2 mt-5 text-base text-slate-700 leading-relaxed max-w-xl">
+                            At {brandName}, we turn your celebrations into heartfelt experiences with personalized event design that reflects your unique story.
+                            Whether you’re planning a luxury wedding, cultural ceremony, or milestone celebration, we create emotion-rich moments that stay with you.
+                        </p>
+
+                        <div className="reveal reveal-delay-3 mt-8 border-t border-black/15 pt-7 grid gap-5">
+                            <div className="flex gap-4">
+                                <div className="h-11 w-11 rounded-2xl bg-black/5 grid place-items-center text-xl">🏅</div>
+                                <div>
+                                    <div className="font-semibold text-slate-950">Unmatched Quality</div>
+                                    <div className="text-sm text-slate-700">Commitment to excellence in every project, big or small.</div>
+                                </div>
+                            </div>
+                            <div className="flex gap-4">
+                                <div className="h-11 w-11 rounded-2xl bg-black/5 grid place-items-center text-xl">🤝</div>
+                                <div>
+                                    <div className="font-semibold text-slate-950">Client-Centric Approach</div>
+                                    <div className="text-sm text-slate-700">Dedicated to understanding and fulfilling your unique needs.</div>
+                                </div>
+                            </div>
                         </div>
-                        <div className="flex flex-wrap gap-3 text-[11px] text-slate-300">
-                            <span className="px-3 py-1 rounded-full border border-amber-400/50 bg-amber-500/10">
-                                Bridal stages & receptions
-                            </span>
-                            <span className="px-3 py-1 rounded-full border border-slate-600 bg-slate-800/80">
-                                Engagements & cultural ceremonies
-                            </span>
-                            <span className="px-3 py-1 rounded-full border border-slate-600 bg-slate-800/80">
-                                Showers & milestone parties
-                            </span>
+                    </div>
+
+                    <div className="relative">
+                        <div className="reveal relative rounded-3xl overflow-hidden shadow-[0_30px_80px_-40px_rgba(0,0,0,0.6)] border border-black/10">
+                            <div className="h-[420px] sm:h-[460px] bg-cover bg-center" style={{ backgroundImage: `url(${eventImages[0]})` }} />
+                        </div>
+
+                        {/* collage cards */}
+                        {[eventImages[1], eventImages[2], eventImages[3], eventImages[4]].map((src, i) => (
+                            <div
+                                key={i}
+                                className={`reveal reveal-delay-${(i % 4) + 1} absolute rounded-2xl overflow-hidden border border-black/10 bg-white shadow-lg hover-lift`}
+                                style={
+                                    i === 0
+                                        ? { top: "14%", left: "-6%", width: 160, height: 160 }
+                                        : i === 1
+                                        ? { top: "6%", right: "-6%", width: 160, height: 120 }
+                                        : i === 2
+                                        ? { bottom: "10%", left: "6%", width: 180, height: 130 }
+                                        : { bottom: "6%", right: "-6%", width: 180, height: 130 }
+                                }
+                            >
+                                <div className="w-full h-full bg-cover bg-center" style={{ backgroundImage: `url(${src})` }} />
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            </section>
+
+            {/* WHO WE ARE (matches your inspiration: image left, text right, dark) */}
+            <section className="mt-12 rounded-3xl overflow-hidden border border-slate-200 dark:border-slate-800">
+                <div className="grid lg:grid-cols-2">
+                    <div className="min-h-[320px] lg:min-h-[520px] bg-cover bg-center" style={{ backgroundImage: `url(${eventImages[5]})` }} />
+                    <div className="bg-slate-950 text-white p-8 sm:p-12 flex flex-col justify-center">
+                        <p className="reveal text-xs uppercase tracking-[0.35em] text-amber-300">WHO WE ARE</p>
+                        <h2 className="reveal reveal-delay-1 mt-4 text-4xl sm:text-5xl font-extrabold leading-tight">
+                            Creating Beautiful Moments.<br />Building Lasting Trust.
+                        </h2>
+                        <p className="reveal reveal-delay-2 mt-6 text-sm sm:text-base text-slate-300 leading-relaxed max-w-xl">
+                            At {brandName}, we’re more than event decorators — we’re creators of unforgettable moments. From elegant décor and customized rentals
+                            to seamless coordination, we bring every detail together to make your day feel truly special.
+                        </p>
+                        <div className="reveal reveal-delay-3 mt-8 flex gap-3">
+                            <Link href="/catalog" className="px-6 py-3 rounded-2xl border border-amber-300/70 text-amber-200 font-semibold hover:bg-white/10 transition">Read More →</Link>
+                            <button type="button" onClick={() => setAssistantOpen(true)} className="px-6 py-3 rounded-2xl bg-amber-400 text-slate-950 font-semibold hover:bg-amber-300 transition">Chat now</button>
                         </div>
                     </div>
                 </div>
             </section>
 
-            {/* RECENT EVENTS */}
-            <section className="bg-slate-900 border-t border-slate-800">
-                <div className="max-w-6xl mx-auto px-4 py-14 space-y-6">
-                    <div className="fade-in-up text-center max-w-2xl mx-auto">
-                        <p className="text-xs uppercase tracking-[0.3em] text-amber-300">
-                            Extremely Impressive
-                        </p>
-                        <h2 className="mt-2 text-2xl sm:text-3xl font-bold text-white">
-                            Recent wedding & event decorations
-                        </h2>
-                        <p className="mt-3 text-sm text-slate-300">
-                            Discover the kind of magic we create for clients across Canada.
-                            Each event tells a unique story, and we're honoured to help
-                            bring these moments to life.
-                        </p>
+            {/* OUR SERVICES (4 tall cards like your screenshot) */}
+            <section className="mt-12 rounded-3xl bg-[#f6f2e6] border border-black/10">
+                <div className="max-w-6xl mx-auto px-6 sm:px-10 py-12">
+                    <div className="grid lg:grid-cols-2 gap-10 items-start">
+                        <div>
+                            <p className="reveal text-xs uppercase tracking-[0.35em] text-amber-700">OUR SERVICES</p>
+                            <h2 className="reveal reveal-delay-1 mt-3 text-4xl sm:text-5xl font-extrabold tracking-tight text-slate-950">
+                                Complete Event Planning & Decoration Services Across Canada
+                            </h2>
+                        </div>
+                        <div className="reveal reveal-delay-2 text-slate-700 leading-relaxed">
+                            From event décor, rentals, and styling to add-on services like photography partners and catering recommendations,
+                            we provide tailored solutions that bring your vision to life — making your experience seamless and unforgettable.
+                        </div>
                     </div>
 
-                    <div className="grid gap-6 sm:grid-cols-3">
-                        {eventImages.map((img, idx) => (
+                    <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+                        {[
+                            { title: "Event Decor", img: eventImages[1] },
+                            { title: "Event Photography", img: eventImages[2] },
+                            { title: "Event Catering", img: eventImages[3] },
+                            { title: "Event Rental", img: eventImages[4] },
+                        ].map((c, i) => (
                             <div
-                                key={idx}
-                                className="fade-in-up bg-slate-950/70 border border-slate-800 rounded-2xl overflow-hidden flex flex-col"
-                                style={{ animationDelay: `${0.1 * idx}s` }}
+                                key={c.title}
+                                className={`reveal reveal-delay-${(i % 4) + 1} group relative rounded-2xl overflow-hidden border border-black/10 bg-white hover-lift`}
                             >
-                                <div
-                                    className="h-40 bg-cover bg-center"
-                                    style={{ backgroundImage: `url(${img})` }}
-                                />
-                                <div className="p-4 text-xs text-slate-300 space-y-1">
-                                    <h3 className="text-sm font-semibold text-white">
-                                        Styled celebration {idx + 1}
-                                    </h3>
-                                    <p>
-                                        Elegant décor with cohesive colours, layered textures
-                                        and photo-ready details.
-                                    </p>
+                                <div className="h-[360px] bg-cover bg-center" style={{ backgroundImage: `url(${c.img})` }} />
+                                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/10 to-transparent opacity-90" />
+                                <div className="absolute inset-x-0 bottom-0 p-5">
+                                    <div className="text-2xl font-semibold text-white drop-shadow">{c.title}</div>
+                                    <div className="mt-3">
+                                        <Link href="/catalog" className="inline-flex items-center text-sm font-semibold text-amber-200 hover:text-amber-100">
+                                            Learn more →
+                                        </Link>
+                                    </div>
                                 </div>
                             </div>
                         ))}
                     </div>
+                </div>
+            </section>
 
-                    <div className="fade-in-up text-center">
-                        <Link
-                            href="/catalog"
-                            className="inline-flex text-sm text-amber-300 hover:text-amber-200"
-                        >
-                            Say yes to the best ideas – explore décor →
-                        </Link>
+            {/* EXTREMELY IMPRESSIVE (mosaic like your screenshot) */}
+            <section className="mt-12 rounded-3xl bg-[#f6f2e6] border border-black/10 overflow-hidden">
+                <div className="max-w-6xl mx-auto px-6 sm:px-10 py-12">
+                    <p className="reveal text-xs uppercase tracking-[0.35em] text-amber-700">EXTREMELY IMPRESSIVE</p>
+                    <h2 className="reveal reveal-delay-1 mt-3 text-4xl sm:text-5xl font-extrabold tracking-tight text-slate-950">Recent Wedding & Event Decorations</h2>
+                    <p className="reveal reveal-delay-2 mt-4 text-slate-700 leading-relaxed max-w-4xl">
+                        Discover the magic we create for clients across Canada. From elegant weddings to milestone celebrations, our portfolio showcases diversity,
+                        creativity, and premium styling.
+                    </p>
+
+                    <div className="mt-10 grid gap-3 sm:gap-4 grid-cols-2 rounded-3xl overflow-hidden">
+                        {eventImages.slice(0, 4).map((src, idx) => (
+                            <div key={idx} className={`reveal reveal-delay-${(idx % 4) + 1} relative overflow-hidden ${idx === 0 ? "col-span-2 md:col-span-1" : ""}`}>
+                                <div className="h-[240px] sm:h-[280px] md:h-[320px] bg-cover bg-center hover-zoom" style={{ backgroundImage: `url(${src})` }} />
+                            </div>
+                        ))}
+                    </div>
+
+                    <div className="reveal reveal-delay-3 mt-8 flex flex-wrap gap-3">
+                        <Link href="/catalog" className="px-6 py-3 rounded-2xl bg-slate-950 text-white font-semibold hover:bg-black transition">Explore catalog</Link>
+                        <button type="button" onClick={() => setAssistantOpen(true)} className="px-6 py-3 rounded-2xl bg-amber-400 text-slate-950 font-semibold hover:bg-amber-300 transition">Get a quote</button>
                     </div>
                 </div>
             </section>
 
-            {/* FAQ */}
-            <section className="bg-slate-950 border-t border-slate-900">
-                <div className="max-w-6xl mx-auto px-4 py-14 grid gap-10 md:grid-cols-[1.1fr,1.4fr] items-start">
-                    <div className="fade-in-up max-w-md">
-                        <p className="text-xs uppercase tracking-[0.3em] text-amber-300">
-                            Every question has an answer
-                        </p>
-                        <h2 className="mt-2 text-2xl sm:text-3xl font-bold text-white">
-                            Frequently asked questions
-                        </h2>
-                        <p className="mt-3 text-sm text-slate-300">
-                            Wondering how it all works? Here are answers to some of the most
-                            common questions about décor, pricing and booking.
-                        </p>
+            {/* FEATURED ITEMS (kept) */}
+            <section id="featured" className="mt-12">
+                <div className="flex items-center justify-between gap-3 flex-wrap">
+                    <div>
+                        <p className="reveal text-xs uppercase tracking-[0.3em] text-amber-600 dark:text-amber-300">Featured</p>
+                        <h2 className="reveal reveal-delay-1 mt-2 text-2xl sm:text-3xl font-bold">Popular rental pieces</h2>
+                        <p className="reveal reveal-delay-2 mt-2 text-sm text-slate-600 dark:text-slate-300">Quick picks clients love. Replace images later — these are placeholders.</p>
+                    </div>
+                    <Link href="/shop" className="reveal reveal-delay-2 text-sm font-semibold text-amber-600 dark:text-amber-300 hover:opacity-80">View all →</Link>
+                </div>
+
+                <div className="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+                    {(featured.length ? featured : new Array(6).fill(null)).map((it, idx) => {
+                        const name = it?.name ?? `Featured Item ${idx + 1}`;
+                        const category = it?.category ?? "Decor";
+                        const price = it?.price != null ? `$${Number(it.price).toFixed(0)}` : "From $—";
+                        const image = it?.image_path || eventImages[idx % eventImages.length];
+                        const href = it?.id ? `/shop/items/${it.id}` : "/shop";
+
+                        return (
+                            <Link
+                                key={it?.id ?? idx}
+                                href={href}
+                                className="group reveal rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950/40 shadow-sm hover-lift"
+                                style={{ transitionDelay: `${Math.min(idx, 5) * 80}ms` }}
+                            >
+                                <div className="h-44 bg-cover bg-center hover-zoom" style={{ backgroundImage: `url(${image})` }} />
+                                <div className="p-4">
+                                    <div className="flex items-start justify-between gap-3">
+                                        <div>
+                                            <div className="text-xs text-slate-500 dark:text-slate-400">{category}</div>
+                                            <div className="mt-1 font-semibold group-hover:underline">{name}</div>
+                                        </div>
+                                        <div className="text-sm font-semibold">{price}</div>
+                                    </div>
+                                    <div className="mt-2 text-sm text-slate-600 dark:text-slate-300 line-clamp-2">
+                                        {it?.short_description ?? "Elegant piece for stage, seating, or photo corners. Replace description later."}
+                                    </div>
+                                </div>
+                            </Link>
+                        );
+                    })}
+                </div>
+            </section>
+
+            {/* FAQ (kept) */}
+            <section className="mt-12 rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950/40 p-6 sm:p-8">
+                <div className="grid gap-8 md:grid-cols-[1.1fr,1.4fr] items-start">
+                    <div className="max-w-md">
+                        <p className="reveal text-xs uppercase tracking-[0.3em] text-amber-600 dark:text-amber-300">FAQ</p>
+                        <h2 className="reveal reveal-delay-1 mt-2 text-2xl sm:text-3xl font-bold">Frequently asked questions</h2>
+                        <p className="reveal reveal-delay-2 mt-3 text-sm text-slate-600 dark:text-slate-300">Quick answers about services, pricing, logistics and booking.</p>
                     </div>
 
                     <div className="space-y-3">
@@ -1001,12 +1134,12 @@ export default function Home({ tenant, items = [] }) {
                             return (
                                 <div
                                     key={index}
-                                    className={`fade-in-up rounded-2xl border ${
+                                    className={`reveal rounded-2xl border ${
                                         isOpen
-                                            ? "border-amber-400/70 bg-slate-900/90"
-                                            : "border-slate-800 bg-slate-900/70"
-                                    } shadow-sm shadow-black/40 transition-colors`}
-                                    style={{ animationDelay: `${0.08 * index}s` }}
+                                            ? "border-amber-400/70 bg-amber-500/5"
+                                            : "border-slate-200 dark:border-slate-800 bg-white/60 dark:bg-slate-950/30"
+                                    } transition-colors`}
+                                    style={{ transitionDelay: `${index * 70}ms` }}
                                 >
                                     <button
                                         type="button"
@@ -1014,18 +1147,14 @@ export default function Home({ tenant, items = [] }) {
                                         className="w-full flex items-center justify-between gap-3 px-4 py-3"
                                     >
                                         <div className="flex flex-col items-start">
-                                            <span className="text-[10px] uppercase tracking-[0.2em] text-amber-300">
-                                                {faq.category}
-                                            </span>
-                                            <span className="mt-1 text-sm font-semibold text-white text-left">
-                                                {faq.question}
-                                            </span>
+                                            <span className="text-[10px] uppercase tracking-[0.2em] text-amber-600 dark:text-amber-300">{faq.category}</span>
+                                            <span className="mt-1 text-sm font-semibold text-left">{faq.question}</span>
                                         </div>
                                         <div
                                             className={`h-7 w-7 rounded-full border flex items-center justify-center text-xs ${
                                                 isOpen
                                                     ? "bg-amber-400 text-slate-900 border-amber-400 rotate-90"
-                                                    : "bg-slate-900 text-slate-300 border-slate-600"
+                                                    : "bg-white dark:bg-slate-900 text-slate-500 dark:text-slate-300 border-slate-200 dark:border-slate-700"
                                             } transition-transform`}
                                         >
                                             <span className="font-bold">&gt;</span>
@@ -1033,7 +1162,7 @@ export default function Home({ tenant, items = [] }) {
                                     </button>
 
                                     <div
-                                        className={`px-4 pb-4 text-xs text-slate-300 overflow-hidden transition-all duration-300 ${
+                                        className={`px-4 pb-4 text-sm text-slate-600 dark:text-slate-300 overflow-hidden transition-all duration-300 ${
                                             isOpen ? "max-h-40 opacity-100" : "max-h-0 opacity-0"
                                         }`}
                                     >
@@ -1046,53 +1175,37 @@ export default function Home({ tenant, items = [] }) {
                 </div>
             </section>
 
-            {/* Instagram */}
-            <section className="bg-slate-950 border-t border-slate-900">
-                <div className="max-w-6xl mx-auto px-4 py-12 grid gap-8 md:grid-cols-2 items-start">
-                    <div className="fade-in-up">
-                        <p className="text-xs uppercase tracking-[0.3em] text-amber-300">
-                            Follow our latest work
-                        </p>
-                        <h2 className="mt-2 text-xl sm:text-2xl font-bold text-white">
-                            Instagram feed
-                        </h2>
-                        <p className="mt-3 text-sm text-slate-300">
-                            See real event transformations, trends, and behind-the-scenes.
-                        </p>
+            {/* Instagram (kept) */}
+            <section className="mt-12 rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950/40 p-6 sm:p-8">
+                <div className="grid gap-8 md:grid-cols-2 items-start">
+                    <div>
+                        <p className="reveal text-xs uppercase tracking-[0.3em] text-amber-600 dark:text-amber-300">Instagram</p>
+                        <h2 className="reveal reveal-delay-1 mt-2 text-xl sm:text-2xl font-bold">Follow our latest work</h2>
+                        <p className="reveal reveal-delay-2 mt-3 text-sm text-slate-600 dark:text-slate-300">See real event transformations, trends, and behind-the-scenes.</p>
 
                         <a
                             href={instagramProfileUrl}
                             target="_blank"
                             rel="noreferrer"
-                            className="inline-flex mt-4 items-center gap-2 text-sm text-amber-300 hover:text-amber-200"
+                            className="reveal reveal-delay-2 inline-flex mt-4 items-center gap-2 text-sm font-semibold text-amber-600 dark:text-amber-300 hover:opacity-80"
                         >
                             Visit Instagram profile →
                         </a>
 
                         <div className="mt-6 grid grid-cols-3 gap-2 w-full max-w-sm">
                             {igImages.map((src, idx) => (
-                                <div
-                                    key={idx}
-                                    className="aspect-square rounded-xl overflow-hidden border border-slate-700 bg-slate-800"
-                                >
-                                    <div
-                                        className="w-full h-full bg-cover bg-center"
-                                        style={{ backgroundImage: `url(${src})` }}
-                                    />
+                                <div key={idx} className="reveal aspect-square rounded-xl overflow-hidden border border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-900" style={{ transitionDelay: `${Math.min(idx, 8) * 60}ms` }}>
+                                    <div className="w-full h-full bg-cover bg-center hover-zoom" style={{ backgroundImage: `url(${src})` }} />
                                 </div>
                             ))}
                         </div>
                     </div>
 
-                    <div className="fade-in-up delay-1">
-                        <div className="bg-slate-900/70 border border-slate-800 rounded-2xl overflow-hidden">
-                            <div className="px-4 py-3 border-b border-slate-800 flex items-center justify-between">
-                                <p className="text-sm font-semibold text-white">
-                                    Embedded post (optional)
-                                </p>
-                                <span className="text-[11px] text-slate-400">
-                                    Best: paste a single post/reel embed URL
-                                </span>
+                    <div>
+                        <div className="reveal rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden">
+                            <div className="px-4 py-3 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
+                                <p className="text-sm font-semibold">Embedded post (optional)</p>
+                                <span className="text-[11px] text-slate-500 dark:text-slate-400">Paste /p/ID/embed URL</span>
                             </div>
 
                             {instagramEmbedUrl ? (
@@ -1106,40 +1219,90 @@ export default function Home({ tenant, items = [] }) {
                                     allow="encrypted-media"
                                 />
                             ) : (
-                                <div className="p-4 text-sm text-slate-300">
-                                    No embed configured. If you want a real feed-style embed,
-                                    paste a post/reel embed URL in{" "}
-                                    <span className="text-slate-100 font-semibold">
-                                        instagramEmbedUrl
-                                    </span>{" "}
-                                    (example: <code className="text-slate-100">.../p/ID/embed</code>).
+                                <div className="p-4 text-sm text-slate-600 dark:text-slate-300">
+                                    No embed configured. Set <span className="font-semibold">instagramEmbedUrl</span> to a post embed URL.
                                 </div>
                             )}
+                        </div>
+
+                        <div className="reveal reveal-delay-1 mt-4 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 bg-amber-500/10">
+                            <div className="font-semibold">Want a fast quote?</div>
+                            <div className="mt-1 text-sm text-slate-600 dark:text-slate-300">
+                                Tell us your <b>date</b>, <b>venue</b>, <b>guest count</b> and <b>colors</b> — we’ll reply with options.
+                            </div>
+                            <div className="mt-4 flex gap-2">
+                                <button
+                                    type="button"
+                                    onClick={() => setAssistantOpen(true)}
+                                    className="px-4 py-2 rounded-xl bg-amber-400 text-slate-950 text-sm font-semibold hover:bg-amber-300"
+                                >
+                                    Open Assistant
+                                </button>
+                                <Link href="/quote" className="px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-800 text-sm font-semibold">Quote Page</Link>
+                            </div>
                         </div>
                     </div>
                 </div>
             </section>
 
             {/* FINAL CTA */}
-            <section className="bg-gradient-to-r from-amber-500 via-amber-400 to-amber-500 border-t border-amber-300/60">
-                <div className="max-w-6xl mx-auto px-4 py-10 flex flex-col sm:flex-row items-center justify-between gap-4">
-                    <div className="fade-in-up">
-                        <h2 className="text-2xl font-bold text-gray-900">
-                            Ready to start planning?
-                        </h2>
-                        <p className="text-sm text-gray-800 mt-1">
-                            Browse the catalog and send us a quote request for your date,
-                            venue and vision.
-                        </p>
+            <section className="mt-12 rounded-3xl overflow-hidden border border-amber-300/60 bg-gradient-to-r from-amber-500 via-amber-400 to-amber-500">
+                <div className="px-6 sm:px-10 py-10 flex flex-col sm:flex-row items-center justify-between gap-4">
+                    <div>
+                        <h2 className="text-2xl font-bold text-gray-900">Ready to start planning?</h2>
+                        <p className="text-sm text-gray-800 mt-1">Browse the catalog and request a quote for your date, venue and vision.</p>
                     </div>
-                    <Link
-                        href="/catalog"
-                        className="fade-in-up delay-1 inline-flex items-center px-6 py-3 rounded-full bg-gray-900 text-amber-300 font-semibold hover:bg-black"
-                    >
-                        Explore catalog
-                    </Link>
+                    <div className="flex gap-2">
+                        <Link href="/catalog" className="inline-flex items-center px-6 py-3 rounded-full bg-gray-900 text-amber-300 font-semibold hover:bg-black">Explore catalog</Link>
+                        <button type="button" onClick={() => setAssistantOpen(true)} className="inline-flex items-center px-6 py-3 rounded-full bg-white text-gray-900 font-semibold hover:bg-white/90">Chat now</button>
+                    </div>
                 </div>
             </section>
+
+            <style>{`
+                /* reveal on load (simple, modern) */
+                .reveal{opacity:0; transform: translateY(10px); transition: opacity 700ms ease, transform 700ms ease;}
+                .reveal.is-in{opacity:1; transform: translateY(0);}
+                .reveal-delay-1{transition-delay: 90ms;}
+                .reveal-delay-2{transition-delay: 180ms;}
+                .reveal-delay-3{transition-delay: 260ms;}
+                .reveal-delay-4{transition-delay: 340ms;}
+
+                .hover-lift{transition: transform 220ms ease, box-shadow 220ms ease;}
+                .hover-lift:hover{transform: translateY(-4px); box-shadow: 0 18px 45px -20px rgba(0,0,0,0.45);}
+
+                .hover-zoom{transition: transform 600ms ease;}
+                .hover-zoom:hover{transform: scale(1.04);}
+
+                .line-clamp-2{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+            `}</style>
+
+            {/* attach reveal observer */}
+            <RevealObserver />
         </GuestLayout>
     );
+}
+
+function RevealObserver() {
+    useEffect(() => {
+        const els = Array.from(document.querySelectorAll(".reveal"));
+        if (!els.length) return;
+
+        const io = new IntersectionObserver(
+            (entries) => {
+                entries.forEach((e) => {
+                    if (e.isIntersecting) {
+                        e.target.classList.add("is-in");
+                        io.unobserve(e.target);
+                    }
+                });
+            },
+            { threshold: 0.12, rootMargin: "80px" }
+        );
+
+        els.forEach((el) => io.observe(el));
+        return () => io.disconnect();
+    }, []);
+
+    return null;
 }

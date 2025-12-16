@@ -1552,3 +1552,241 @@ Admin-side assistant
 Analytics dashboard (most asked questions)
 
 Voice assistant
+
+
+
+Project Reference — Rental SaaS Virtual Assistant & Quoting System
+🏢 Project
+
+Rental SaaS for an Event Décor Business (e.g. Harbour Decor Rentals)
+
+🧱 Tech Stack (Application Only)
+
+Backend: Laravel 12
+
+Frontend: React + Inertia
+
+Database: MySQL
+
+PDF: DomPDF
+
+AI: OpenAI (assistant logic)
+
+Architecture: Multi-tenant (Tenant-based data isolation)
+
+🤖 Virtual Assistant (Public Website)
+Endpoint
+POST /api/assistant
+
+Core Capabilities
+
+Event-decor–only assistant (no general chat)
+
+Short, business-focused responses
+
+Session-based conversations
+
+Stores chat history in DB
+
+Frontend chat stored in localStorage
+
+Floating assistant panel (right side)
+
+Typing animation + quick action buttons
+
+Assistant Collects
+
+Event date
+
+City
+
+Venue
+
+Guest count
+
+Theme colors
+
+Budget
+
+🛠 Assistant Tools (Implemented)
+1️⃣ Availability Checking
+
+Uses bookings table
+
+Checks:
+
+Date only
+
+Date + time range
+
+Returns:
+
+Available / Not available
+
+Suggests next available dates
+
+Frontend:
+
+Inline date picker
+
+Time dropdowns
+
+Past dates disabled
+
+2️⃣ Draft Quote Creation (AI-Triggered)
+
+Triggered by:
+
+__CREATE_DRAFT_QUOTE__
+
+
+Creates:
+
+Quote record in DB
+
+Auto-generated quote number (year-based)
+
+Default line items (optional)
+
+Calculates subtotal / tax / total
+
+Generates PDF automatically
+
+Stores PDF in /storage/quotes/
+
+Returns:
+
+Quote number
+
+PDF download link
+
+Quote ID
+
+📄 Quote System
+Tables
+
+quotes
+
+tenant_id
+
+user_id
+
+quote_no
+
+event_date
+
+city
+
+venue
+
+event_type
+
+guest_count
+
+theme_colors
+
+budget
+
+notes
+
+status (draft / sent / confirmed)
+
+subtotal / tax / total
+
+pdf_path
+
+quote_items
+
+quote_id
+
+name
+
+category
+
+qty
+
+unit_price
+
+line_total
+
+notes
+
+🧩 Services Layer
+AvailabilityService
+
+check(tenantId, date, start?, end?)
+
+nextAvailableDates(tenantId, date)
+
+QuoteService
+
+createDraft(tenantId, data, userId?)
+
+generatePdf(Quote, tenantName)
+
+QuoteNumberService
+
+Generates sequential quote numbers:
+
+Q-YYYY-000001
+
+🖥 Frontend (Home Page)
+Assistant UI
+
+Floating launcher button
+
+Slide-in panel
+
+Quick actions:
+
+Check availability
+
+Get quote
+
+Suggest décor items
+
+Package ideas
+
+Inline availability form
+
+PDF link shown directly in chat after quote creation
+
+🧠 Multi-Tenant Context
+
+Tenant resolved via middleware
+
+All bookings, quotes, and assistant sessions are tenant-scoped
+
+🚀 What’s Next (Planned)
+
+Admin-side assistant
+
+Quote editor UI
+
+Booking → quote → invoice flow
+
+Analytics dashboard
+
+Voice assistant
+
+Payment integration
+
+✅ You can now open a new ChatGPT window
+
+Paste everything above, and say:
+
+“Continue from this Rental SaaS app reference.”
+
+If you want, next I can:
+
+Design Admin Quote UI
+
+Add Booking → Quote automation
+
+Add Invoice generation
+
+Add Analytics dashboard
+
+Add Voice assistant architecture
+
+Just tell me 👍
