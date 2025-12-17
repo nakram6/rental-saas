@@ -46,3 +46,5 @@ auth.json
 # -------------------------------------------------------
 Homestead.json
 Homestead.yaml
+
+public/

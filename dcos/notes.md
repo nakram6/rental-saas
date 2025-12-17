@@ -378,3 +378,9 @@ OpenAI = Apple
 ChatGPT = iPhone
 
 OpenAI API = iOS S
+
+
+brew install imagemagick
+👉 This installs a trusted image processing tool
+👉 It does NOT touch your images yet
+👉 One-time install only

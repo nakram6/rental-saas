@@ -1790,3 +1790,94 @@ Add Analytics dashboard
 Add Voice assistant architecture
 
 Just tell me 👍
+
+
+
+
+
+
+
+
+
+Reference for New Chat Window
+
+Continue from this context:
+We are building a Laravel + Inertia (React) public website for Harbour Decor Rentals.
+
+What is already implemented and working:
+
+GuestLayout.jsx (public layout) with:
+
+Modern header and navigation
+
+Shopping cart badge (localStorage based)
+
+Dark / Light theme toggle
+
+Profile dropdown (Login / Register / Dashboard / Profile / Logout)
+
+Responsive mobile menu
+
+Tall, modern, multi-column footer (brand, explore, services, contact)
+
+Auth user is shared via:
+
+public function share(Request $request): array {
+    return [
+        ...parent::share($request),
+        'auth' => [
+            'user' => $request->user(),
+        ],
+    ];
+}
+
+
+Public pages created with Inertia:
+
+Home
+
+Catalog
+
+Shop (index + item show)
+
+Cart (with quote checkout → API)
+
+Quote page
+
+Photography page
+
+Portfolio page
+
+Contact page (card-based form)
+
+Cart uses a client-side useCart() hook
+
+Pages are wrapped using:
+
+Page.layout = page => <GuestLayout tenant={page.props.tenant}>{page}</GuestLayout>;
+
+
+Routes are being cleaned and unified in routes/web.php
+
+Goal: clean, elegant, premium UI with card layouts, animations, and consistent public + admin separation
+
+✅ How to use it
+
+Open a new ChatGPT window
+
+Paste the text above
+
+Add one line like:
+
+“Now continue with: ___”
+
+If you want, I can also:
+
+Turn this into a README.md project context
+
+Create a “Public Pages Roadmap”
+
+Or give you a 1-page architecture summary
+
+Just tell me 🙂
+
